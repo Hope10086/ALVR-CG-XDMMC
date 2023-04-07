@@ -553,7 +553,7 @@ dependencies = [
  "regex",
  "rustc-hash",
  "shlex",
- "which 4.3.0",
+ "which",
 ]
 
 [[package]]
@@ -575,7 +575,7 @@ dependencies = [
  "rustc-hash",
  "shlex",
  "syn",
- "which 4.3.0",
+ "which",
 ]
 
 [[package]]
@@ -597,7 +597,7 @@ dependencies = [
  "rustc-hash",
  "shlex",
  "syn",
- "which 4.3.0",
+ "which",
 ]
 
 [[package]]
@@ -1506,15 +1506,6 @@ checksum = "886b70328cba8871bfc025858e1de4be16b1d5088f2ba50b57816f4210672615"
 dependencies = [
  "errno",
  "libc",
-]
-
-[[package]]
-name = "failure"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d32e9bd16cc02eae7db7ef620b392808b89f6a5e16bb3497d159c6b92a0f4f86"
-dependencies = [
- "backtrace",
 ]
 
 [[package]]
@@ -3819,12 +3810,12 @@ dependencies = [
 
 [[package]]
 name = "runas"
-version = "0.2.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a620b0994a180cdfa25c0439e6d58c0628272571501880d626ffff58e96a0799"
+checksum = "ed87390fefd18965ff20baae5aeb9913bcf82d2b59dc04c0f6d8f17f7be56ff2"
 dependencies = [
  "cc",
- "which 3.1.1",
+ "which",
 ]
 
 [[package]]
@@ -5176,16 +5167,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "549533d9e1cdd4b4cda7718d33ff500fc4c34b5467b71d76b547ae0324f3b2a2"
 dependencies = [
  "bitflags",
-]
-
-[[package]]
-name = "which"
-version = "3.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d011071ae14a2f6671d0b74080ae0cd8ebf3a6f8c9589a2cd45f23126fe29724"
-dependencies = [
- "failure",
- "libc",
 ]
 
 [[package]]
