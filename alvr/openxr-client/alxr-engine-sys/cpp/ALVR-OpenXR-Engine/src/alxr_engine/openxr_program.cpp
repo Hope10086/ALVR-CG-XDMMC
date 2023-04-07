@@ -3224,7 +3224,7 @@ struct OpenXrProgram final : IOpenXrProgram {
          {
             const auto& spaceLoc = spaceLocOption.value();
             //OVR::Vector3f pos[2]={};
-            OVR::Vector3f gazeDirection_[2] = {};
+            OVR::Vector3f gazeDirection[2] = {};
             if (Math::Pose::IsPoseValid(spaceLoc)) {
                 for (std::size_t idx = 0; idx < MaxEyeCount; ++idx) {//MaxEyeCount=2
                    newVRCFTPacket.eyeGazePoses[idx] = spaceLoc.pose;
@@ -3237,12 +3237,12 @@ struct OpenXrProgram final : IOpenXrProgram {
                         spaceLoc.pose.orientation.y,
                         spaceLoc.pose.orientation.z,
                         spaceLoc.pose.orientation.w);
-                   gazeDirection_[idx]=rot.Rotate(OVR::Vector3f(0.0f, 0.0f, -1.0f));
+                   gazeDirection[idx]=rot.Rotate(OVR::Vector3f(0.0f, 0.0f, -1.0f));
                 }
                 //newVRCFTPacket.eyeTrackerType = VRFCFTEyeType::ExtEyeGazeInteraction;
                 //newVRCFTPacket.isEyeFollowingBlendshapesValid = 0;
                 //SHN:log
-               Log::Write(Log::Level::Info, Fmt("shn-ptime=%llu  LeftEye Poses: (%f,%f,%f) (%f,%f,%f,%f)\n  Direct:(%f,%f,%f)",
+               Log::Write(Log::Level::Info,Fmt("shn-ptime=%llu LeftEye Poses: (%f,%f,%f) (%f,%f,%f,%f)\n  Direct:(%f,%f,%f)",
                 ptime,
                 newVRCFTPacket.eyeGazePoses[0].position.x,
                 newVRCFTPacket.eyeGazePoses[0].position.y,
@@ -3251,9 +3251,9 @@ struct OpenXrProgram final : IOpenXrProgram {
                 newVRCFTPacket.eyeGazePoses[0].orientation.y,
                 newVRCFTPacket.eyeGazePoses[0].orientation.z,
                 newVRCFTPacket.eyeGazePoses[0].orientation.w, 
-                gazeDirection_[0].x, 
-                gazeDirection_[0].y,
-                gazeDirection_[0].z
+                gazeDirection[0].x, 
+                gazeDirection[0].y,
+                gazeDirection[0].z
                 ));
                 /* 经测试 左右眼数据是一样的
                 Log::Write(Log::Level::Info, Fmt("Right Eye Poses: (%f,%f,%f) (%f,%f,%f,%f)\n",
@@ -3288,7 +3288,13 @@ struct OpenXrProgram final : IOpenXrProgram {
         const auto headSpaceLoc = GetSpaceLocation(m_viewSpace, ptime);
         HeadPose_Position = ToTrackingVector3(headSpaceLoc.pose.position);
         HeadPose_Orientation = ToTrackingQuat(headSpaceLoc.pose.orientation);
-        Log::Write(Log::Level::Info,Fmt("shn-ptime=%llu head Poses:(%f,%f,%f) (%f,%f,%f,%f)\n",
+        const OVR::Quatf rot=OVR::Quatf(
+            HeadPose_Orientation.x,
+            HeadPose_Orientation.y,
+            HeadPose_Orientation.z,
+            HeadPose_Orientation.w);
+        const OVR::Vector3f headDirection=rot.Rotate(OVR::Vector3f(0.0f, 0.0f, -1.0f));
+        Log::Write(Log::Level::Info,Fmt("shn-ptime=%llu head Poses:(%f,%f,%f) (%f,%f,%f,%f)\n head direction:(%f,%f,%f)\n",
             ptime,
             HeadPose_Position.x,
             HeadPose_Position.y,
@@ -3296,7 +3302,10 @@ struct OpenXrProgram final : IOpenXrProgram {
             HeadPose_Orientation.x,
             HeadPose_Orientation.y,
             HeadPose_Orientation.z,
-            HeadPose_Orientation.w
+            HeadPose_Orientation.w,
+            headDirection.x,
+            headDirection.y, 
+            headDirection.z
             ) );    
         
         //eyeposes

@@ -246,7 +246,7 @@ void alxr_set_stream_config(const ALXRStreamConfig config)
             fdParams = ALXR::MakeFoveatedDecodeParams(rc);
         graphicsPtr->SetFoveatedDecode(rc.enableFoveation ? &fdParams : nullptr);
         programPtr->CreateSwapchains(rc.eyeWidth, rc.eyeHeight);
-        //SHN：打印一个分辨率看一看
+        //SHN：打印一个分辨率看一看 可能是只打印了一次 所以没有看到
         Log::Write(Log::Level::Info,Fmt("shn- Render Config:Width:%f Height:%f\n",rc.eyeWidth,rc.eyeHeight));
     }
 
