@@ -1,0 +1,40 @@
+[package]
+name = "alvr_audio"
+version = "18.2.3"
+authors = ["alvr-org", "Riccardo Zaglia <riccardo.zaglia5@gmail.com>"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.58"
+
+[dependencies]
+alvr_common = { path = "../common" }
+alvr_session = { path = "../session" }
+alvr_sockets = { path = "../sockets" }
+
+cpal = "0.13.5"
+parking_lot = "0.12"
+rodio = "0.15"
+serde = "1"
+tokio = "1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+cpal = { version = "0.13.5", features = ["jack"] }
+
+[target.'cfg(not(target_os = "linux"))'.dependencies]
+cpal = "0.13.5"
+
+[target.'cfg(windows)'.dependencies]
+widestring = "0.5"
+winapi = { version = "0.3", features = [
+    "impl-default",
+    "combaseapi",
+    "coml2api",
+    "endpointvolume",
+    "functiondiscoverykeys_devpkey",
+    "mmdeviceapi",
+    "objbase",
+    "propidl",
+    "propsys",
+    "wtypes",
+] }
+wio = "0.2"

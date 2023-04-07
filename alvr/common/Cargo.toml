@@ -1,0 +1,18 @@
+[package]
+name = "alvr_common"
+version = "18.2.3"
+authors = ["alvr-org", "Riccardo Zaglia <riccardo.zaglia5@gmail.com>"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.58"
+
+[dependencies]
+backtrace = "0.3"
+lazy_static = "1"
+log = "0.4"
+glam = { version = "0.20", features = ["serde"] }
+semver = { version = "1", features = ["serde"] }
+
+[target.'cfg(windows)'.dependencies]
+msgbox = "0.7"
+parking_lot = "0.12"

@@ -1,0 +1,23 @@
+[package]
+name = "alxr-engine-sys"
+version = "0.10.0"
+authors = ["korejan <64199710+korejan@users.noreply.github.com>"]
+edition = "2021"
+links = "alxr_engine"
+
+[features]
+# These are only used for android builds.
+generic-flavor = [] # default if none specified.
+quest-flavor = []
+pico-neo-flavor = []
+# These features are only for non-android builds.
+cuda-interop = []
+bundled-ffmpeg = []
+oculus-ext-headers = []
+
+[build-dependencies]
+cmake = "0.1"
+bindgen = "0.61"
+cc = { version = "1", features = ["parallel"] }
+walkdir = "2"
+target-lexicon = "0.12"

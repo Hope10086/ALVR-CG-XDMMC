@@ -1,0 +1,27 @@
+[workspace]
+resolver = "2"
+members = [
+    "alvr/settings-schema-derive",
+    "alvr/settings-schema",
+    "alvr/filesystem",
+    "alvr/common",
+    "alvr/commands",
+    "alvr/session",
+    "alvr/sockets",
+    "alvr/audio",
+    "alvr/client",
+    "alvr/server",
+    "alvr/launcher",
+    "alvr/vrcompositor-wrapper",
+    "alvr/vulkan-layer",
+    "alvr/openxr-client/alxr-engine-sys",
+    "alvr/openxr-client/alxr-common",
+    "alvr/openxr-client/alxr-client",
+    "alvr/openxr-client/alxr-client/uwp",
+    "alvr/openxr-client/alxr-android-client",
+    "alvr/openxr-client/alxr-android-client/quest",
+    "alvr/openxr-client/alxr-android-client/pico-neo",
+    "alvr/xtask",
+    #"alvr/experiments/client",     # needed for bug in cargo-subcommand
+    #"alvr/experiments/*",
+]

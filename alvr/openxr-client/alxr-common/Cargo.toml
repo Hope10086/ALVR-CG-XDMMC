@@ -1,0 +1,44 @@
+[package]
+name = "alxr-common"
+version = "0.10.0"
+authors = ["korejan <64199710+korejan@users.noreply.github.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+# These are only used for android builds.
+generic-flavor = ["alxr-engine-sys/generic-flavor"] # default if none specified.
+quest-flavor = ["alxr-engine-sys/quest-flavor"]
+pico-neo-flavor = ["alxr-engine-sys/pico-neo-flavor"]
+# These features are only for non-android builds.
+cuda-interop = ["alxr-engine-sys/cuda-interop"]
+bundled-ffmpeg = ["alxr-engine-sys/bundled-ffmpeg"]
+oculus-ext-headers = ["alxr-engine-sys/oculus-ext-headers"]
+
+[dependencies]
+alxr-engine-sys = { path = "../alxr-engine-sys" }
+alvr_common = { path = "../../common" }
+alvr_session = { path = "../../session" }
+alvr_sockets = { path = "../../sockets" }
+settings-schema = { path = "../../settings-schema", features = ["rename_camel_case"] }
+# Basic utilities
+lazy_static = "1"
+parking_lot = "0.12"
+# Serialization
+serde = "1"
+serde_json = "1"
+bincode = "1"
+# Async and networking
+futures = "0.3"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+# Miscellaneous
+semver = "1"
+local_ipaddress = "0.1"
+structopt = "0.3"
+glam = { version = "0.20", features = ["serde"] }
+
+[target.'cfg(target_os = "android")'.dependencies]
+alvr_audio = { path = "../../audio" }
+libc = "0.2"
+oboe = "0.4" # Note: cannot use feature "java-interface" to query audio info
+android_system_properties = "0.1"

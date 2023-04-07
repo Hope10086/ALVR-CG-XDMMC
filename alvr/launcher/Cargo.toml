@@ -1,0 +1,30 @@
+[package]
+name = "alvr_launcher"
+version = "18.2.3"
+authors = ["alvr-org", "Riccardo Zaglia <riccardo.zaglia5@gmail.com>"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.58"
+
+[features]
+default = []
+
+[dependencies]
+alvr_commands = { path = "../commands" }
+alvr_common = { path = "../common" }
+alvr_filesystem = { path = "../filesystem" }
+
+druid = "0.7"
+serde_json = "1"
+single-instance = "0.3"
+sysinfo = "0.23"
+ureq = "2"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.10"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = "0.9"
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"

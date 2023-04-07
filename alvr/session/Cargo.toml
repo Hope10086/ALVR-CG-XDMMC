@@ -1,0 +1,20 @@
+[package]
+name = "alvr_session"
+version = "18.2.3"
+authors = ["alvr-org", "Riccardo Zaglia <riccardo.zaglia5@gmail.com>"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.58"
+
+[dependencies]
+alvr_common = { path = "../common" }
+settings-schema = { path = "../settings-schema", features = [
+    "rename_camel_case",
+] }
+
+bytemuck = { version = "1", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[build-dependencies]
+regex = "1"
