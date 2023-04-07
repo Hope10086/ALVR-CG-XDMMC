@@ -75,6 +75,10 @@ pub struct Options {
 
     #[structopt(/*short,*/ long)]
     pub disable_localdimming: bool,
+
+    /// Enables a headless OpenXR session when a runtime supports it.
+    #[structopt(/*short,*/ long = "headless")]
+    pub headless_session: bool,
     // /// Set speed
     // // we don't want to name it "speed", need to look smart
     // #[structopt(short = "v", long = "velocity", default_value = "42")]
@@ -106,13 +110,14 @@ impl Options {
             graphics_api: Some(ALXRGraphicsApi::Auto),
             decoder_type: None,
             decoder_thread_count: 0,
-            color_space: Some(ALXRColorSpace::Rec2020),
+            color_space: Some(ALXRColorSpace::Default),
             no_linearize_srgb: false,
             no_alvr_server: false,
             no_bindings: false,
             no_server_framerate_lock: false,
             no_frameskip: false,
             disable_localdimming: false,
+            headless_session: false,
         };
 
         let sys_properties = AndroidSystemProperties::new();
@@ -185,6 +190,16 @@ impl Options {
             );
         }
 
+        let property_name = "debug.alxr.headless_session";
+        if let Some(value) = sys_properties.get(&property_name) {
+            new_options.headless_session =
+                std::str::FromStr::from_str(value.as_str()).unwrap_or(new_options.headless_session);
+            println!(
+                "ALXR System Property: {property_name}, input: {value}, parsed-result: {}",
+                new_options.headless_session
+            );
+        }
+
         new_options
     }
 }
@@ -197,7 +212,7 @@ impl Options {
             verbose: cfg!(debug_assertions),
             graphics_api: Some(ALXRGraphicsApi::D3D12),
             decoder_type: Some(ALXRDecoderType::D311VA),
-            color_space: Some(ALXRColorSpace::Rec2020),
+            color_space: Some(ALXRColorSpace::Default),
             decoder_thread_count: 0,
             no_linearize_srgb: false,
             no_alvr_server: false,
@@ -205,6 +220,7 @@ impl Options {
             no_server_framerate_lock: false,
             no_frameskip: false,
             disable_localdimming: false,
+            headless_session: false,
         };
         new_options
     }
@@ -240,8 +256,7 @@ pub fn init_connections(sys_properties: &ALXRSystemProperties) {
     alvr_common::show_err(|| -> StrResult {
         println!("Init-connections started.");
 
-        let system_name = unsafe { CStr::from_ptr(sys_properties.systemName.as_ptr()) };
-        let device_name: &str = system_name.to_str().unwrap_or("UnknownHMD");
+        let device_name = sys_properties.system_name();
         let available_refresh_rates = unsafe {
             slice::from_raw_parts(
                 sys_properties.refreshRates,
@@ -275,7 +290,7 @@ pub fn init_connections(sys_properties: &ALXRSystemProperties) {
 
         runtime.spawn(async move {
             let connection_loop =
-                connection::connection_lifecycle_loop(headset_info, device_name, private_identity);
+                connection::connection_lifecycle_loop(headset_info, &device_name, private_identity);
             tokio::select! {
                 _ = connection_loop => (),
                 _ = ON_PAUSE_NOTIFIER.notified() => ()

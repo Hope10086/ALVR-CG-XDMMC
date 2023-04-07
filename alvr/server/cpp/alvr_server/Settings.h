@@ -45,8 +45,7 @@ public:
 	EyeFov m_eyeFov[2];
 	float m_flSecondsFromVsyncToPhotons;
 	float m_flIPD;
-//SHN 更改 注视点渲染内置超级开关 0 禁用 1允许开启
-   // int m_SuperFVR  = 0;
+
 	bool m_enableFoveatedRendering;
 	float m_foveationCenterSizeX;
 	float m_foveationCenterSizeY;

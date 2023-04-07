@@ -19,8 +19,6 @@
 #include "openvr_driver.h"
 #include "FFR.h"
 
-//SHN :Screenshot
-#include "ScreenGrab11.h"
 #define GPU_PRIORITY_VAL 7
 
 using Microsoft::WRL::ComPtr;
@@ -51,11 +49,8 @@ public:
 	bool Startup();
 	bool RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBounds_t bounds[][2], int layerCount, bool recentering, const std::string& message, const std::string& debugText);
 	void GetEncodingResolution(uint32_t *width, uint32_t *height);
-	//SHN:
-	//void SaveDepth(ID3D11Texture2D *depthTexture); 不需要传递任何参数都在一个class中
-    void SaveDepth(uint64_t presentationTime,uint64_t targetTimestampNs);
+
 	ComPtr<ID3D11Texture2D> GetTexture();
-	ComPtr<ID3D11Texture2D> GetDepthTexture();
 private:
 	std::shared_ptr<CD3DRender> m_pD3DRender;
 	ComPtr<ID3D11Texture2D> m_pStagingTexture;
@@ -70,8 +65,6 @@ private:
 	ComPtr<ID3D11SamplerState> m_pSamplerLinear;
 
 	ComPtr<ID3D11Texture2D> m_pDepthStencil;
-	//SHN ：增加一个ID3D11Texture2D来保存Depth
-	ComPtr<ID3D11Texture2D> m_pSaveDepthStencil;
 	ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
 	ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;
 

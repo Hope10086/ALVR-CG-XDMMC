@@ -151,7 +151,7 @@ VkResult swapchain::create_image(const VkImageCreateInfo &image_create,
         return res;
     }
     m_fds.push_back(fd);
-    TxtPrint("GetMemoryFdKHR returned fd=%d\n", fd);
+    Debug("GetMemoryFdKHR returned fd=%d\n", fd);
 
     VkExportSemaphoreCreateInfo exp_info = {};
     exp_info.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
@@ -186,7 +186,7 @@ VkResult swapchain::create_image(const VkImageCreateInfo &image_create,
         return res;
     }
     m_fds.push_back(fd);
-    TxtPrint("GetSemaphoreFdKHR returned fd=%d\n", fd);
+    Debug("GetSemaphoreFdKHR returned fd=%d\n", fd);
 
     return res;
 }
@@ -239,7 +239,7 @@ int swapchain::send_fds() {
 }
 
 bool swapchain::try_connect() {
-    TxtPrint("swapchain::try_connect\n");
+    Debug("swapchain::try_connect\n");
     m_socketPath = getenv("XDG_RUNTIME_DIR");
     m_socketPath += "/alvr-ipc";
 
@@ -283,7 +283,7 @@ bool swapchain::try_connect() {
         perror("sendmsg");
         exit(1);
     }
-    TxtPrint("swapchain sent fds\n");
+    Debug("swapchain sent fds\n");
 
     return true;
 }

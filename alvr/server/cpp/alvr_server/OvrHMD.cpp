@@ -11,6 +11,7 @@
 #include "VSyncThread.h"
 #include "bindings.h"
 #include <cfloat>
+
 #ifdef _WIN32
 #include "platform/win32/CEncoder.h"
 #elif __APPLE__
@@ -260,7 +261,7 @@ vr::EVRInitError OvrHmd::Activate(vr::TrackedDeviceIndex_t unObjectId) {
                 return vr::VRInitError_Driver_Failed;
             }
 
-            Info(" %ls as primary graphics adapter.\n", m_adapterName.c_str());
+            Info("Using %ls as primary graphics adapter.\n", m_adapterName.c_str());
             Info("OSVer: %ls\n", GetWindowsOSVersion().c_str());
 
             m_VSyncThread = std::make_shared<VSyncThread>(Settings::Instance().m_refreshRate);
@@ -341,24 +342,8 @@ vr::DriverPose_t OvrHmd::GetPose() {
               pose.vecPosition[2]);
 
         pose.poseTimeOffset = m_Listener->GetPoseTimeOffset();
-//SHN  位姿信息已注释  
-        //std::string txtpath="HeadPosition";
-     /* uint64_t submitFrameIndex = info.targetTimestampNs+ Settings::Instance().m_trackingFrameOffset;
-         TxtPrint( "poseTimeOffse=%d  targetTimestampNs=%llu submitFrameIndex= %llu \n Rotation=(%f, %f, %f, %f)  Position=(%f, %f, %f)\n",
-                pose.poseTimeOffset,
-                info.targetTimestampNs,
-                submitFrameIndex,
-				pose.qRotation.x,
-				pose.qRotation.y,
-				pose.qRotation.z,
-				pose.qRotation.w,
-				pose.vecPosition[0],
-				pose.vecPosition[1],
-				pose.vecPosition[2]  
-         );*/
-
     }
- 
+
     return pose;
 }
 
@@ -411,7 +396,7 @@ void OvrHmd::StartStreaming() {
                   e.what());
         }
         m_encoder->Start();
-///SHN  编码器设置 的
+
         m_directModeComponent->SetEncoder(m_encoder);
 
         m_encoder->OnStreamStart();

@@ -1,0 +1,14 @@
+prefix=../../../build/Win10UWP/x64
+exec_prefix=${prefix}
+libdir=../../../build/Win10UWP/x64/lib
+includedir=../../../build/Win10UWP/x64/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 59.37.100
+Requires: 
+Requires.private: libswresample >= 4.7.100, libavutil >= 57.28.100
+Conflicts:
+Libs: -L${libdir}  -lavcodec 
+Libs.private: mfplat.lib mfuuid.lib ole32.lib strmiids.lib dxgi.lib d3d11.lib ole32.lib
+Cflags: -I${includedir}

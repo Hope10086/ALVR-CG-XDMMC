@@ -1,17 +1,23 @@
+#![cfg(target_os = "android")]
 mod permissions;
+mod wifi_manager;
+
+use std::println;
 
 use alxr_common::{
     alxr_destroy, alxr_init, alxr_is_session_running, alxr_on_pause, alxr_on_resume,
     alxr_process_frame, battery_send, init_connections, input_send, path_string_to_hash,
     request_idr, set_waiting_next_idr, shutdown, time_sync_send, video_error_report_send,
     views_config_send, ALXRColorSpace, ALXRDecoderType, ALXRGraphicsApi, ALXRRustCtx,
-    ALXRSystemProperties, APP_CONFIG,
+    ALXRSystemProperties, ALXRVersion, APP_CONFIG,
 };
 use permissions::check_android_permissions;
+use wifi_manager::{acquire_wifi_lock, release_wifi_lock};
 
 use ndk::looper::*;
 use ndk_context;
 use ndk_glue;
+use version_compare::{Part, Version};
 
 struct AppData {
     destroy_requested: bool,
@@ -50,9 +56,11 @@ impl AppData {
                 println!("alxr-client: received on_pause event.");
                 self.resumed = false;
                 unsafe { alxr_on_pause() };
+                release_wifi_lock();
             }
             ndk_glue::Event::Resume => {
                 println!("alxr-client: received on_resume event.");
+                acquire_wifi_lock();
                 unsafe { alxr_on_resume() };
                 self.resumed = true;
             }
@@ -60,6 +68,74 @@ impl AppData {
             _ => (),
         }
     }
+}
+
+fn get_build_property<'a>(jvm: &'a jni::JavaVM, property_name: &str) -> String {
+    let env = jvm.attach_current_thread().unwrap();
+
+    let jdevice_name = env
+        .get_static_field("android/os/Build", &property_name, "Ljava/lang/String;")
+        .unwrap()
+        .l()
+        .unwrap();
+    let device_name_raw = env.get_string(jdevice_name.into()).unwrap();
+
+    device_name_raw.to_string_lossy().as_ref().to_owned()
+}
+
+fn get_firmware_version<'a>(jvm: &'a jni::JavaVM) -> ALXRVersion {
+    fn get_version_helper<'a, 'b>(jvm: &'a jni::JavaVM, prop_name: &str) -> Option<[u32; 3]> {
+        let value_str = get_build_property(&jvm, &prop_name);
+        match Version::from(&value_str) {
+            Some(v) => {
+                let mut ret: [u32; 3] = [0, 0, 0];
+                for idx in 0..3 {
+                    match v.part(idx) {
+                        Ok(Part::Number(val)) => ret[idx] = val as u32,
+                        _ => (),
+                    }
+                }
+                Some(ret)
+            }
+            _ => None,
+        }
+    }
+
+    let version = get_version_helper(&jvm, "ID")
+        .unwrap_or_else(|| get_version_helper(&jvm, "DISPLAY").unwrap_or([0, 0, 0]));
+
+    ALXRVersion {
+        major: version[0],
+        minor: version[1],
+        patch: version[2],
+    }
+}
+
+fn get_build_model<'a>(jvm: &'a jni::JavaVM) -> String {
+    get_build_property(&jvm, "MODEL")
+}
+
+fn get_preferred_resolution<'a>(
+    jvm: &'a jni::JavaVM,
+    sys_prop: &ALXRSystemProperties,
+) -> Option<(u32, u32)> {
+    let sys_name = sys_prop.system_name();
+    let model_name = get_build_model(&jvm);
+    for name in [sys_name, model_name] {
+        match name.as_str() {
+            //"XR Elite" => return Some((1920, 1920)),
+            //"Focus 3" => return Some((2448, 2448)),
+            "Lynx" => return Some((1600, 1600)),
+            "Meta Quest Pro" => return Some((1800, 1920)),
+            "Pico Neo 3" | "Pico Neo 3 Link" | "Oculus Quest2" | "Oculus Quest 2" => {
+                return Some((1832, 1920))
+            }
+            "Oculus Quest" => return Some((1440, 1600)),
+            "Pico 4" | "A8150" => return Some((2160, 2160)),
+            _ => (),
+        }
+    }
+    None
 }
 
 #[cfg_attr(target_os = "android", ndk_glue::main(backtrace = "on"))]
@@ -107,7 +183,6 @@ pub fn poll_all_ms(block: bool) -> Option<ndk_glue::Event> {
     }
 }
 
-#[cfg(target_os = "android")]
 fn run(app_data: &mut AppData) -> Result<(), Box<dyn std::error::Error>> {
     unsafe {
         let ctx = ndk_context::android_context();
@@ -124,7 +199,7 @@ fn run(app_data: &mut AppData) -> Result<(), Box<dyn std::error::Error>> {
         let ctx = ALXRRustCtx {
             graphicsApi: APP_CONFIG.graphics_api.unwrap_or(ALXRGraphicsApi::Auto),
             decoderType: ALXRDecoderType::NVDEC, // Not used on android.
-            displayColorSpace: APP_CONFIG.color_space.unwrap_or(ALXRColorSpace::Rec2020),
+            displayColorSpace: APP_CONFIG.color_space.unwrap_or(ALXRColorSpace::Default),
             verbose: APP_CONFIG.verbose,
             applicationVM: vm_ptr as *mut std::ffi::c_void,
             applicationActivity: native_activity,
@@ -141,10 +216,19 @@ fn run(app_data: &mut AppData) -> Result<(), Box<dyn std::error::Error>> {
             noServerFramerateLock: APP_CONFIG.no_server_framerate_lock,
             noFrameSkip: APP_CONFIG.no_frameskip,
             disableLocalDimming: APP_CONFIG.disable_localdimming,
+            headlessSession: APP_CONFIG.headless_session,
+            firmwareVersion: get_firmware_version(&vm),
         };
         let mut sys_properties = ALXRSystemProperties::new();
         if !alxr_init(&ctx, &mut sys_properties) {
             return Ok(());
+        }
+
+        if let Some((eye_w, eye_h)) = get_preferred_resolution(&vm, &sys_properties) {
+            println!("ALXR: Overriding recommend eye resolution ({}x{}) with prefferred resolution ({eye_w}x{eye_h})",
+                        sys_properties.recommendedEyeWidth, sys_properties.recommendedEyeHeight);
+            sys_properties.recommendedEyeWidth = eye_w;
+            sys_properties.recommendedEyeHeight = eye_h;
         }
         init_connections(&sys_properties);
 

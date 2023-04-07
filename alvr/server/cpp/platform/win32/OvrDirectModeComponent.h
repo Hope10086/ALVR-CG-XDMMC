@@ -55,12 +55,6 @@ private:
 	SubmitLayerPerEye_t m_submitLayers[MAX_LAYERS][2];
 	vr::HmdQuaternion_t m_prevFramePoseRotation;
 	vr::HmdQuaternion_t m_framePoseRotation;
-	//SHNChanged
-	vr::HmdVector3d_t m_prevFramePosePosition;
-	vr::HmdVector3d_t m_framePosePosition;
-	vr::VRTextureBounds_t m_LeftEyeBounds;
-	vr::VRTextureBounds_t m_RightEyeBounds;
-	//end
 	uint64_t m_targetTimestampNs;
 	uint64_t m_prevTargetTimestampNs;
 };

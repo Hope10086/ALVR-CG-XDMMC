@@ -45,7 +45,7 @@ impl From<&str> for crate::ALXRColorSpace {
             "P3" => crate::ALXRColorSpace::P3,
             "AdobeRgb" => crate::ALXRColorSpace::AdobeRgb,
             "Rec2020" => crate::ALXRColorSpace::Rec2020,
-            _ => crate::ALXRColorSpace::Rec2020,
+            _ => crate::ALXRColorSpace::Default,
         }
     }
 }
@@ -60,6 +60,11 @@ impl ALXRSystemProperties {
             recommendedEyeWidth: 0,
             recommendedEyeHeight: 0,
         }
+    }
+
+    pub fn system_name(&self) -> String {
+        let system_name = unsafe { std::ffi::CStr::from_ptr(self.systemName.as_ptr()) };
+        system_name.to_str().unwrap_or("UnknownHMD").to_string()
     }
 }
 

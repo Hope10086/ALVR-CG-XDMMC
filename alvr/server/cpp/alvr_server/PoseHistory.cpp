@@ -15,7 +15,7 @@ void PoseHistory::OnPoseUpdated(const TrackingInfo &info) {
 		info.HeadPose_Pose_Orientation.y,
 		info.HeadPose_Pose_Orientation.z,
 		&history.rotationMatrix);
-// SHN 矩阵信息 Mat
+
 	Debug("Rotation Matrix=(%f, %f, %f, %f) (%f, %f, %f, %f) (%f, %f, %f, %f)\n"
 		, history.rotationMatrix.m[0][0], history.rotationMatrix.m[0][1], history.rotationMatrix.m[0][2], history.rotationMatrix.m[0][3]
 		, history.rotationMatrix.m[1][0], history.rotationMatrix.m[1][1], history.rotationMatrix.m[1][2], history.rotationMatrix.m[1][3]

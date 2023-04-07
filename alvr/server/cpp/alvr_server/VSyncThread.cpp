@@ -20,13 +20,9 @@ void VSyncThread::Run() {
 
 		if (m_PreviousVsync + interval > current) {
 			uint64_t sleepTimeMs = (m_PreviousVsync + interval - current) / 1000;
-			
 
 			if (sleepTimeMs > 0) {
-				Debug("current = GetTimestampUs=%lls \n",current);
-				//SHNChanged  只是打印了一下 sleeptimeMs 
 				Debug("Sleep %llu ms for next VSync.\n", sleepTimeMs);
-				
 				std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
 			}
 

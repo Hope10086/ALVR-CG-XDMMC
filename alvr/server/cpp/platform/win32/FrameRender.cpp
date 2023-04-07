@@ -43,13 +43,13 @@ bool FrameRender::Startup()
 	compositionTextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
 	ComPtr<ID3D11Texture2D> compositionTexture;
-    //
+
 	if (FAILED(m_pD3DRender->GetDevice()->CreateTexture2D(&compositionTextureDesc, NULL, &compositionTexture)))
 	{
 		Error("Failed to create staging texture!\n");
 		return false;
 	}
-   // 赋值
+
 	HRESULT hr = m_pD3DRender->GetDevice()->CreateRenderTargetView(compositionTexture.Get(), NULL, &m_pRenderTargetView);
 	if (FAILED(hr)) {
 		Error("CreateRenderTargetView %p %ls\n", hr, GetErrorStr(hr).c_str());
@@ -103,7 +103,7 @@ bool FrameRender::Startup()
 	//
 	// Compile shaders
 	//
-//SHN：CreateVertexShader、CreatePixelShader
+
 	std::vector<uint8_t> vshader(FRAME_RENDER_VS_CSO_PTR, FRAME_RENDER_VS_CSO_PTR + FRAME_RENDER_VS_CSO_LEN);
 	hr = m_pD3DRender->GetDevice()->CreateVertexShader((const DWORD*)&vshader[0], vshader.size(), NULL, &m_pVertexShader);
 	if (FAILED(hr)) {
@@ -131,7 +131,7 @@ bool FrameRender::Startup()
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
-//SHN：CreateInputLayout
+
 	// Create the input layout
 	hr = m_pD3DRender->GetDevice()->CreateInputLayout(layout, numElements, &vshader[0],
 		vshader.size(), &m_pVertexLayout);
@@ -140,17 +140,16 @@ bool FrameRender::Startup()
 		return false;
 	}
 
-	// Set the input layout  IASetInputLayout
+	// Set the input layout
 	m_pD3DRender->GetContext()->IASetInputLayout(m_pVertexLayout.Get());
 
 	//
-	// Create vertex buffer  顶点缓存
+	// Create vertex buffer
 	//
 
 	// Src texture has various geometry and we should use the part of the textures.
 	// That part are defined by uv-coordinates of "bounds" passed to IVRDriverDirectModeComponent::SubmitLayer.
-	// So we should update uv-coordinates for every frames and layers. 
-   //  uv 坐标系 意味着什么？
+	// So we should update uv-coordinates for every frames and layers.
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DYNAMIC;
@@ -268,12 +267,12 @@ bool FrameRender::Startup()
 		Error("CreateBlendState %p %ls\n", hr, GetErrorStr(hr).c_str());
 		return false;
 	}
-// SHN：  贴图纹理？  拷贝到m_pStagingTexture
+
 	m_pStagingTexture = compositionTexture;
 
 	std::vector<uint8_t> quadShaderCSO(QUAD_SHADER_CSO_PTR, QUAD_SHADER_CSO_PTR + QUAD_SHADER_CSO_LEN);
 	ComPtr<ID3D11VertexShader> quadVertexShader = CreateVertexShader(m_pD3DRender->GetDevice(), quadShaderCSO);
-// SHN： 色彩校正模块
+
 	enableColorCorrection = Settings::Instance().m_enableColorCorrection;
 	if (enableColorCorrection) {
 		std::vector<uint8_t> colorCorrectionShaderCSO(COLOR_CORRECTION_CSO_PTR, COLOR_CORRECTION_CSO_PTR + COLOR_CORRECTION_CSO_LEN);
@@ -304,31 +303,27 @@ bool FrameRender::Startup()
 
 		m_pStagingTexture = colorCorrectedTexture;
 	}
-//SHN  FFR 固定注视点渲染模块
-   
-   
+
 	enableFFR = Settings::Instance().m_enableFoveatedRendering;
-    if (enableFFR) {
-		 m_ffr = std::make_unique<FFR>(m_pD3DRender->GetDevice());
-		 m_ffr->Initialize(m_pStagingTexture.Get());
+	if (enableFFR) {
+		m_ffr = std::make_unique<FFR>(m_pD3DRender->GetDevice());
+		m_ffr->Initialize(m_pStagingTexture.Get());
 
-		 m_pStagingTexture = m_ffr->GetOutputTexture();
-	 }
-	
-
+		m_pStagingTexture = m_ffr->GetOutputTexture();
+	}
 
 	Debug("Staging Texture created\n");
 
 	return true;
 }
 
-//SHN  帧渲染模块  pTexture[][] 是双眼多层的纹理  然后FrameRender 里 定义（分配内存）的 textures[2]
+
 bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBounds_t bounds[][2], int layerCount, bool recentering, const std::string &message, const std::string& debugText)
 {
-	// Set render target   OMSetRenderTargets
+	// Set render target
 	m_pD3DRender->GetContext()->OMSetRenderTargets(1, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get());
 
-	// Set viewport     RSSetViewports
+	// Set viewport
 	D3D11_VIEWPORT viewport;
 	viewport.Width = (float)Settings::Instance().m_renderWidth;
 	viewport.Height = (float)Settings::Instance().m_renderHeight;
@@ -338,7 +333,7 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 	viewport.TopLeftY = 0;
 	m_pD3DRender->GetContext()->RSSetViewports(1, &viewport);
 
-	// Clear the back buffer   ClearRenderTargetView
+	// Clear the back buffer
 	m_pD3DRender->GetContext()->ClearRenderTargetView(m_pRenderTargetView.Get(), DirectX::Colors::MidnightBlue);
 
 	// Overlay recentering texture on top of all layers.
@@ -369,7 +364,7 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 				, recentering ? L" (recentering)" : L"", !message.empty() ? L" (message)" : L"");
 			continue;
 		}
-// SHN DESC  好像也很关键
+
 		D3D11_TEXTURE2D_DESC srcDesc;
 		textures[0]->GetDesc(&srcDesc);
 
@@ -383,29 +378,27 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 		SRVDesc.Texture2D.MipLevels = 1;
 
 		ComPtr<ID3D11ShaderResourceView> pShaderResourceView[2];
-// SHN ：  CreateShaderResourceView 左眼 ，创建着色视图 
+
 		HRESULT hr = m_pD3DRender->GetDevice()->CreateShaderResourceView(textures[0], &SRVDesc, pShaderResourceView[0].ReleaseAndGetAddressOf());
 		if (FAILED(hr)) {
 			Error("CreateShaderResourceView %p %ls\n", hr, GetErrorStr(hr).c_str());
 			return false;
 		}
-//SHN   CreateShaderResourceView 右眼
 		hr = m_pD3DRender->GetDevice()->CreateShaderResourceView(textures[1], &SRVDesc, pShaderResourceView[1].ReleaseAndGetAddressOf());
 		if (FAILED(hr)) {
 			Error("CreateShaderResourceView %p %ls\n", hr, GetErrorStr(hr).c_str());
 			return false;
 		}
-//SHN    OMSetBlendState
+
 		if (i == 0) {
 			m_pD3DRender->GetContext()->OMSetBlendState(m_pBlendStateFirst.Get(), NULL, 0xffffffff);
 		}
 		else {
 			m_pD3DRender->GetContext()->OMSetBlendState(m_pBlendState.Get(), NULL, 0xffffffff);
 		}
-		//SHN  ClearDepthStencilView    为何要清理？ 不明白
+		
 		// Clear the depth buffer to 1.0 (max depth)
 		// We need clear depth buffer to correctly render layers.
-		m_pSaveDepthStencil=m_pDepthStencil;
 		m_pD3DRender->GetContext()->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		//
@@ -414,8 +407,8 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 
 		SimpleVertex vertices[] =
 		{
-			// Left View  SHN 这好像也是最后输出纹理上左右眼的分布
-		{ DirectX::XMFLOAT3(-1.0f, -1.0f, 0.5f), DirectX::XMFLOAT2(bound[0].uMin, bound[0].vMax), 0 },
+			// Left View
+			{ DirectX::XMFLOAT3(-1.0f, -1.0f, 0.5f), DirectX::XMFLOAT2(bound[0].uMin, bound[0].vMax), 0 },
 		{ DirectX::XMFLOAT3(0.0f,  1.0f, 0.5f), DirectX::XMFLOAT2(bound[0].uMax, bound[0].vMin), 0 },
 		{ DirectX::XMFLOAT3(0.0f, -1.0f, 0.5f), DirectX::XMFLOAT2(bound[0].uMax, bound[0].vMax), 0 },
 		{ DirectX::XMFLOAT3(-1.0f,  1.0f, 0.5f), DirectX::XMFLOAT2(bound[0].uMin, bound[0].vMin), 0 },
@@ -428,7 +421,7 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 
 		// TODO: Which is better? UpdateSubresource or Map
 		//m_pD3DRender->GetContext()->UpdateSubresource(m_pVertexBuffer.Get(), 0, nullptr, &vertices, 0, 0);
-//SHN： Map
+
 		D3D11_MAPPED_SUBRESOURCE mapped = { 0 };
 		hr = m_pD3DRender->GetContext()->Map(m_pVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 		if (FAILED(hr)) {
@@ -436,7 +429,7 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 			return false;
 		}
 		memcpy(mapped.pData, vertices, sizeof(vertices));
-//SHN： UnMap
+
 		m_pD3DRender->GetContext()->Unmap(m_pVertexBuffer.Get(), 0);
 
 		// Set the input layout
@@ -448,7 +441,6 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 
 		UINT stride = sizeof(SimpleVertex);
 		UINT offset = 0;
-		// SHN：IASetVertexBuffers、IASetIndexBuffer、IASetPrimitiveTopology
 		m_pD3DRender->GetContext()->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
 
 		m_pD3DRender->GetContext()->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
@@ -457,7 +449,7 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 		//
 		// Set shaders
 		//
-//SHN： VSSetShader、PSSetShader 、PSSetShaderResources、PSSetSamplers  
+
 		m_pD3DRender->GetContext()->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 		m_pD3DRender->GetContext()->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
@@ -469,33 +461,19 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 		//
 		// Draw
 		//
-//SHN： DrawIndexed
+
 		m_pD3DRender->GetContext()->DrawIndexed(VERTEX_INDEX_COUNT, 0, 0);
 	}
 
-
-
-
-//SHN ScreenGrab3 v3.0 
-    
-
-
-
-
-//SHN 色彩校正 
 	if (enableColorCorrection) {
 		m_colorCorrectionPipeline->Render();
 	}
 
-
-//SHN  固定注视点渲染
 	if (enableFFR) {
 		m_ffr->Render();
 	}
 
-//
 	m_pD3DRender->GetContext()->Flush();
-
 
 	return true;
 }
@@ -504,14 +482,8 @@ ComPtr<ID3D11Texture2D> FrameRender::GetTexture()
 {
 	return m_pStagingTexture;
 }
-//SHN : depth buffer
-/*ComPtr<ID3D11Texture2D> FrameRender::GetDepthTexture()
-{
-	return m_pSaveDepthStencil;
-}*/
 
 void FrameRender::GetEncodingResolution(uint32_t *width, uint32_t *height) {
-
 	if (enableFFR) {
 		m_ffr->GetOptimizedResolution(width, height);
 	}
@@ -521,23 +493,3 @@ void FrameRender::GetEncodingResolution(uint32_t *width, uint32_t *height) {
 	}
 	
 }
-//SHN：  深度信息获取 1.0未启用
-void FrameRender::SaveDepth(uint64_t presentationTime,uint64_t targetTimestampNs)
-{
-	if( false/*Settings::Instance().m_captureLayerDDSTrigger*/ )
-	{
-	 wchar_t buf[1024];
-	 _snwprintf_s(buf, sizeof(buf), L"D:\\AX\\Logs\\DepthGrab\\depth-%llu.dds", targetTimestampNs);
-     HRESULT hr = DirectX::SaveDDSTextureToFile(m_pD3DRender->GetContext(),m_pSaveDepthStencil.Get(),buf);
-	    if(FAILED (hr)){
-           Info("Failed to save Depth to DDS   %llu to file",targetTimestampNs);
-		}
-        else{
-           Info("Save Depth to DDS =%llu Successfully",targetTimestampNs);
-		}
-	}
-	
-
-}
-
-//SHN： 再来一个保存为csv文档：

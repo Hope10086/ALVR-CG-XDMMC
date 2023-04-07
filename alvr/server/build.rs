@@ -104,35 +104,27 @@ fn main() {
 
     let mut build = cc::Build::new();
     build
-        .cpp(true) 
-        //true表示支持c++格式 
+        .cpp(true)
         .files(source_files_paths)
-        //加入source_files_paths路径下的文件将会被编译
         .flag_if_supported("-isystemcpp/openvr/headers") // silences many warnings from openvr headers
         .flag_if_supported("-std=c++17")
-        // Add an arbitrary flag to the invocation of the compiler if it supports it
-        // only supported by c++17     
         .include("cpp/openvr/headers")
         .include("cpp");
-        //包含头文件   Add a directory to the -I or include path for headers 
+
     #[cfg(windows)]
     build
-        .debug(false) //  false This is because we cannot link to msvcrtd (see below)
-        //Configures whether the compiler will emit debug information when generating object files.
-        //This option is automatically scraped from the DEBUG environment variable by build scripts, so it’s not required to call this function.
+        .debug(false) // This is because we cannot link to msvcrtd (see below)
         .flag("/std:c++17")
         .flag("/permissive-")
         .define("NOMINMAX", None)
         .define("_WINSOCKAPI_", None)
         .define("_MBCS", None)
         .define("_MT", None);
-//SHNChanged
-        // 应该就是声明吧Specify a -D variable with an optional value
 
     #[cfg(target_os = "macos")]
     build.define("__APPLE__", None);
 
-     //#[cfg(debug_assertions)]
+    // #[cfg(debug_assertions)]
     // build.define("ALVR_DEBUG_LOG", None);
 
     #[cfg(all(target_os = "linux", feature = "bundled_ffmpeg"))]

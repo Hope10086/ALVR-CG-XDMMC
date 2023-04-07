@@ -112,34 +112,15 @@ void OvrDirectModeComponent::GetNextSwapTextureSetIndex(vr::SharedTextureHandle_
 * using CreateSwapTextureSet and should be alternated per frame.  Call Present once all layers have been submitted. */
 void OvrDirectModeComponent::SubmitLayer(const SubmitLayerPerEye_t(&perEye)[2])
 {
-	//SHN 左眼位姿  这里要进行数据形式的进行转唤
 	auto pPose = &perEye[0].mHmdPose; // TODO: are both poses the same? Name HMD suggests yes.
-	/*Debug("SubmitLayer Handles=%p,%p DepthHandles=%p,%p %f-%f,%f-%f %f-%f,%f-%f\n%f,%f,%f,%f\n%f,%f,%f,%f\n%f,%f,%f,%f\n"
+	Debug("SubmitLayer Handles=%p,%p DepthHandles=%p,%p %f-%f,%f-%f %f-%f,%f-%f\n%f,%f,%f,%f\n%f,%f,%f,%f\n%f,%f,%f,%f\n"
 		, perEye[0].hTexture, perEye[1].hTexture, perEye[0].hDepthTexture, perEye[1].hDepthTexture
 		, perEye[0].bounds.uMin, perEye[0].bounds.uMax, perEye[0].bounds.vMin, perEye[0].bounds.vMax
 		, perEye[1].bounds.uMin, perEye[1].bounds.uMax, perEye[1].bounds.vMin, perEye[1].bounds.vMax
 		, pPose->m[0][0], pPose->m[0][1], pPose->m[0][2], pPose->m[0][3]
 		, pPose->m[1][0], pPose->m[1][1], pPose->m[1][2], pPose->m[1][3]
 		, pPose->m[2][0], pPose->m[2][1], pPose->m[2][2], pPose->m[2][3]
-	);*/
-// SHN changed  seesion.txt 中打印左右眼 位姿矩阵  纹理深度值是啥 3-15
-  /*  auto pPose2 = &perEye[1].mHmdPose;
-    Info("left eye view matrix=\n%f,%f,%f,%f\n%f,%f,%f,%f\n%f,%f,%f,%f\n"
-	, pPose->m[0][0], pPose->m[0][1], pPose->m[0][2], pPose->m[0][3]
-	, pPose->m[1][0], pPose->m[1][1], pPose->m[1][2], pPose->m[1][3]
-	, pPose->m[2][0], pPose->m[2][1], pPose->m[2][2], pPose->m[2][3]	
 	);
-   Info("right eye view matrix=\n%f,%f,%f,%f\n%f,%f,%f,%f\n%f,%f,%f,%f\n"
-   , pPose2->m[0][0], pPose2->m[0][1], pPose2->m[0][2], pPose2->m[0][3]
-   , pPose2->m[1][0], pPose2->m[1][1], pPose2->m[1][2], pPose2->m[1][3]
-   , pPose2->m[2][0], pPose2->m[2][1], pPose2->m[2][2], pPose2->m[2][3]
-   );
-   Info("lefteye DepthTexture: %f, righteye	DepthTexture: %f",perEye[0].hDepthTexture,perEye[1].hDepthTexture);
-  */
-
-
-
-
 	// pPose is qRotation which is calculated by SteamVR using vr::DriverPose_t::qRotation.
 	// pPose->m[0][0], pPose->m[0][1], pPose->m[0][2],
 	// pPose->m[1][0], pPose->m[1][1], pPose->m[1][2], 
@@ -153,7 +134,6 @@ void OvrDirectModeComponent::SubmitLayer(const SubmitLayerPerEye_t(&perEye)[2])
 		// We search for history of TrackingInfo and find the TrackingInfo which have nearest matrix value.
 
 		auto pose = m_poseHistory->GetBestPoseMatch(*pPose);
-		//SHN:pose 是矩阵pPose转化后 可视的位姿数据  
 		if (pose) {
 			// found the frameIndex
 			m_prevTargetTimestampNs = m_targetTimestampNs;
@@ -164,21 +144,8 @@ void OvrDirectModeComponent::SubmitLayer(const SubmitLayerPerEye_t(&perEye)[2])
 			m_framePoseRotation.y = pose->info.HeadPose_Pose_Orientation.y;
 			m_framePoseRotation.z = pose->info.HeadPose_Pose_Orientation.z;
 			m_framePoseRotation.w = pose->info.HeadPose_Pose_Orientation.w;
-			//SHNChanged  PosePosition 提取
-			m_prevFramePosePosition=m_framePosePosition;
-			m_framePosePosition.v[0]=pose->info.HeadPose_Pose_Position.x;
-            m_framePosePosition.v[1]=pose->info.HeadPose_Pose_Position.y;
-			m_framePosePosition.v[2]=pose->info.HeadPose_Pose_Position.z;
-			Debug("Frame pose found. m_prevSubmitFrameIndex=%llu m_submitFrameIndex=%llu\n", m_prevTargetTimestampNs, m_targetTimestampNs);
-		    m_LeftEyeBounds.uMin=perEye[0].bounds.uMin;
-			m_LeftEyeBounds.uMax=perEye[0].bounds.uMax;
-			m_LeftEyeBounds.vMin=perEye[0].bounds.vMin;
-			m_LeftEyeBounds.vMax=perEye[0].bounds.vMax;
 
-            m_RightEyeBounds.uMin=perEye[1].bounds.uMin;
-			m_RightEyeBounds.uMax=perEye[1].bounds.uMax;
-			m_RightEyeBounds.vMin=perEye[1].bounds.vMin;
-			m_RightEyeBounds.vMax=perEye[1].bounds.vMax;
+			Debug("Frame pose found. m_prevSubmitFrameIndex=%llu m_submitFrameIndex=%llu\n", m_prevTargetTimestampNs, m_targetTimestampNs);
 		}
 		else {
 			m_targetTimestampNs = 0;
@@ -206,8 +173,8 @@ void OvrDirectModeComponent::SubmitLayer(const SubmitLayerPerEye_t(&perEye)[2])
 void OvrDirectModeComponent::Present(vr::SharedTextureHandle_t syncTexture)
 {
 	bool useMutex = true;
-	//Debug("Present syncTexture=%p (use:%d) m_prevSubmitFrameIndex=%llu m_submitFrameIndex=%llu\n", syncTexture, useMutex, m_prevTargetTimestampNs, m_targetTimestampNs);
-	//Info("Present syncTexture=%p (use:%d) m_prevSubmitFrameIndex=%llu m_submitFrameIndex=%llu\n", syncTexture, useMutex, m_prevTargetTimestampNs, m_targetTimestampNs);
+	Debug("Present syncTexture=%p (use:%d) m_prevSubmitFrameIndex=%llu m_submitFrameIndex=%llu\n", syncTexture, useMutex, m_prevTargetTimestampNs, m_targetTimestampNs);
+
 	IDXGIKeyedMutex *pKeyedMutex = NULL;
 
 	uint32_t layerCount = m_submitLayer;
@@ -262,20 +229,19 @@ void OvrDirectModeComponent::Present(vr::SharedTextureHandle_t syncTexture)
 }
 
 void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
-// SHN 纹理的复制/搬移 反正不是用来截图的不能在这里进行ScreenGrab
+
 	uint64_t presentationTime = GetTimestampUs();
 
 	ID3D11Texture2D *pTexture[MAX_LAYERS][2];
 	ComPtr<ID3D11Texture2D> Texture[MAX_LAYERS][2];
 	vr::VRTextureBounds_t bounds[MAX_LAYERS][2];
-// SHN Sigle EYE  检查左右眼纹理是否存在并传输  加了Info作为Debug
+
 	for (uint32_t i = 0; i < layerCount; i++) {
-		// Find left eye texture.  先确定有没有左眼纹理
+		// Find left eye texture.
 		HANDLE leftEyeTexture = (HANDLE)m_submitLayers[i][0].hTexture;
 		auto it = m_handleMap.find(leftEyeTexture);
 		if (it == m_handleMap.end()) {
 			// Ignore this layer.
-			//Info("Submitted texture is not found on HandleMap. eye=right layer=%d/%d Texture Handle=%p\n", i, layerCount, leftEyeTexture);
 			Debug("Submitted texture is not found on HandleMap. eye=right layer=%d/%d Texture Handle=%p\n", i, layerCount, leftEyeTexture);
 		}
 		else {
@@ -284,15 +250,12 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
 			Texture[i][0]->GetDesc(&desc);
 
 			Debug("CopyTexture: layer=%d/%d pid=%d Texture Size=%dx%d Format=%d\n", i, layerCount, it->second.first->pid, desc.Width, desc.Height, desc.Format);
-			//Info("CopyTexture: layer=%d/%d pid=%d Texture Size=%dx%d Format=%d\n", i, layerCount, it->second.first->pid, desc.Width, desc.Height, desc.Format);
 
-
-			// Find right eye texture.  再确定有无右眼纹理
+			// Find right eye texture.
 			HANDLE rightEyeTexture = (HANDLE)m_submitLayers[i][1].hTexture;
 			it = m_handleMap.find(rightEyeTexture);
 			if (it == m_handleMap.end()) {
 				// Ignore this layer
-				//Info("Submitted texture is not found on HandleMap. eye=left layer=%d/%d Texture Handle=%p\n", i, layerCount, rightEyeTexture);
 				Debug("Submitted texture is not found on HandleMap. eye=left layer=%d/%d Texture Handle=%p\n", i, layerCount, rightEyeTexture);
 				Texture[i][0].Reset();
 			}
@@ -309,28 +272,7 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
 
 	// This can go away, but is useful to see it as a separate packet on the gpu in traces.
 	m_pD3DRender->GetContext()->Flush();
-//SHN ScreenGrab  v2.0 已禁用
-     //Info("presentationTime=%llu layerCount=%d",presentationTime, layerCount);
-	if(false/*Settings::Instance().m_captureLayerDDSTrigger*/){
-    //buf
-       wchar_t buf[1024];
 
-	// Grab
-	   for (uint32_t i = 0; i < layerCount; i++)
-	  {
-		//左眼试图
-		_snwprintf_s(buf, sizeof(buf), L"D:\\AX\\Logs\\ScreenGrab2\\debug-%llu-%d-%d.dds", presentationTime, layerCount,i);
-		 HRESULT hr = DirectX::SaveDDSTextureToFile(m_pD3DRender->GetContext(), pTexture[i][0], buf);
-		if(FAILED (hr)){
-        Info("Failed to save DDS texture  %llu -%d-%dto file",presentationTime,layerCount,i);
-		}
-		else{
-        Info("ScreenGrab targetTimestampNs=%llu", presentationTime);
-		 //TxtPrint("ScreenGrab targetTimestampNs=%llu", presentationTime);
-		}
-	  }	    
-	}
-//end
 	if (m_pEncoder) {
 		Debug("Waiting for finish of previous encode.\n");
 
@@ -339,44 +281,14 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
 		m_pEncoder->WaitForEncode();
 
 		std::string debugText;
- 
+
 		uint64_t submitFrameIndex = m_targetTimestampNs + Settings::Instance().m_trackingFrameOffset;
 		Debug("Fix frame index. FrameIndex=%llu Offset=%d New FrameIndex=%llu\n"
 			, m_targetTimestampNs, Settings::Instance().m_trackingFrameOffset, submitFrameIndex);
-
-	//SHN 位姿提取打印TxtPrint   这里原理并没有这部分内容 完全是额外添加的 但是放在这里应该是没问题的因为前边的纹理还没叠加
-	 if(Settings::Instance().m_captureLayerDDSTrigger){
-        TxtPrint(" Offset=%d New FrameIndex=%llu    Position=(%lf, %lf, %lf) Rotation=(%lf, %lf, %lf, %lf) \n "
-		, Settings::Instance().m_trackingFrameOffset
-		, submitFrameIndex
-		,m_framePosePosition.v[0]
-		,m_framePosePosition.v[1]
-		,m_framePosePosition.v[2]
-		,m_framePoseRotation.x
-		,m_framePoseRotation.y
-		,m_framePoseRotation.z
-		,m_framePoseRotation.w
-		);
-		//
-		/*TxtPrint("Left Eye Fov Bounds=(%lf, %lf, %lf, %lf)-Right Eye Fov Bounds=(%lf, %lf, %lf, %lf)\n ",
-		m_LeftEyeBounds.uMax, 
-		m_LeftEyeBounds.uMin,
-		m_LeftEyeBounds.vMax,
-		m_LeftEyeBounds.vMin,
-		m_RightEyeBounds.uMax,
-		m_RightEyeBounds.uMin,
-		m_RightEyeBounds.vMax,
-		m_RightEyeBounds.vMin
-		);*/
-//end
-	} 	
 
 		// Copy entire texture to staging so we can read the pixels to send to remote device.
 		m_pEncoder->CopyToStaging(pTexture, bounds, layerCount,false, presentationTime, submitFrameIndex,"", debugText);
 
 		m_pD3DRender->GetContext()->Flush();
-
-		
 	}
 }
-

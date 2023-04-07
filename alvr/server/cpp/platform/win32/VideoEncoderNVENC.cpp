@@ -90,6 +90,7 @@ void VideoEncoderNVENC::Shutdown()
 		fpOut.close();
 	}
 }
+
 void VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture, uint64_t presentationTime, uint64_t targetTimestampNs, bool insertIDR)
 {
 	if (m_Listener) {
@@ -106,41 +107,12 @@ void VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture, uint64_t presentatio
 	}
 
 	std::vector<std::vector<uint8_t>> vPacket;
+
 	const NvEncInputFrame* encoderInputFrame = m_NvNecoder->GetNextInputFrame();
+
 	ID3D11Texture2D *pInputTexture = reinterpret_cast<ID3D11Texture2D*>(encoderInputFrame->inputPtr);
+	m_pD3DRender->GetContext()->CopyResource(pInputTexture, pTexture);
 
-//SHN ScreenGrab1.0  已启用
-   // 如果 开启截图按钮 才进行Copy纹理信息
-	if (/*true*/ /*false*/Settings::Instance().m_captureLayerDDSTrigger)		//Settings::Instance().m_captureLayerDDSTrigger  Settings::Instance().m_DebugCaptureOutput
-	{
-	     D3D11_BOX soureRegion;  
-         soureRegion.left = 0;
-         soureRegion.right = Settings::Instance().m_renderWidth / 2;
-         soureRegion.top = 0;
-         soureRegion.bottom = Settings::Instance().m_renderHeight;
-         soureRegion.front = 0;
-         soureRegion.back = 1;
-         m_pD3DRender->GetContext()->CopySubresourceRegion(pInputTexture, 0, 0, 0, 0, pTexture, 0, &soureRegion);
-	    //m_pD3DRender->GetContext()->CopyResource(pInputTexture, pTexture);
-	     wchar_t buf[1024];
-	    _snwprintf_s(buf, sizeof(buf), L"D:\\AX\\Logs\\ScreenGrab\\debug-%llu.dds", targetTimestampNs);
-         HRESULT hr = DirectX::SaveDDSTextureToFile(m_pD3DRender->GetContext(), pInputTexture, buf);
-        if(FAILED (hr)){
-           //Info("Failed to save DDS texture  %llu to file",targetTimestampNs);
-		}
-        else{
-           //Info("ScreenGrab targetTimestampNs=%llu Successfully",targetTimestampNs);
-		}
-        //TxtPrint("ScreenGrab targetTimestampNs=%llu",targetTimestampNs); 
-	}
-	else  
-	   m_pD3DRender->GetContext()->CopyResource(pInputTexture, pTexture);
-	   // 原ALVR  内容应该是将输入的纹理拷到缓存纹理 指针
-//end	
-
-
-
-		
 	NV_ENC_PIC_PARAMS picParams = {};
 	if (insertIDR) {
 		Debug("Inserting IDR frame.\n");
@@ -163,13 +135,7 @@ void VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture, uint64_t presentatio
 		}
 	}
 }
-//SHN：
-/*void VideoEncoderNVENC::TransmitDepth(ID3D11Texture2D *pTexture, uint64_t presentationTime, uint64_t targetTimestampNs, bool insertIDR)
-{
 
-
-
-}*/
 void VideoEncoderNVENC::FillEncodeConfig(NV_ENC_INITIALIZE_PARAMS &initializeParams, int refreshRate, int renderWidth, int renderHeight, uint64_t bitrateBits)
 {
 	auto &encodeConfig = *initializeParams.encodeConfig;
@@ -198,6 +164,7 @@ void VideoEncoderNVENC::FillEncodeConfig(NV_ENC_INITIALIZE_PARAMS &initializePar
 	bool supportsIntraRefresh = m_NvNecoder->GetCapabilityValue(EncoderGUID, NV_ENC_CAPS_SUPPORT_INTRA_REFRESH);
 	Debug("VideoEncoderNVENC: SupportsReferenceFrameInvalidation: %d\n", mSupportsReferenceFrameInvalidation);
 	Debug("VideoEncoderNVENC: SupportsIntraRefresh: %d\n", supportsIntraRefresh);
+
 	// 16 is recommended when using reference frame invalidation. But it has caused bad visual quality.
 	// Now, use 0 (use default).
 	int maxNumRefFrames = 0;
@@ -245,8 +212,6 @@ void VideoEncoderNVENC::FillEncodeConfig(NV_ENC_INITIALIZE_PARAMS &initializePar
 	encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
 	uint32_t maxFrameSize = static_cast<uint32_t>(bitrateBits / refreshRate);
 	Debug("VideoEncoderNVENC: maxFrameSize=%d bits\n", maxFrameSize);
-	//SHNChanged
-    //Info("VideoEncoderNVENC: maxFrameSize=%d bits\n", maxFrameSize);
 	encodeConfig.rcParams.vbvBufferSize = maxFrameSize;
 	encodeConfig.rcParams.vbvInitialDelay = maxFrameSize;
 	encodeConfig.rcParams.maxBitRate = static_cast<uint32_t>(bitrateBits);

@@ -34,7 +34,8 @@ SUBCOMMANDS:
     build-alxr-appimage Build OpenXR based client AppImage for linux only.
     build-alxr-android  Build OpenXR based client (android platforms only), then copy binaries to build folder
     build-alxr-quest    Build OpenXR based client for Oculus Quest (same as `build-alxr-android --oculus-quest`), then copy binaries to build folder
-    build-alxr-pico     Build OpenXR based client for Pico Neo 3 (same as `build-alxr-android --pico-neo`), then copy binaries to build folder
+    build-alxr-pico     Build OpenXR based client for Pico 4/Neo 3 PUI >= 5.2.x (same as `build-alxr-android --pico`), then copy binaries to build folder
+    build-alxr-pico-v4  Build OpenXR based client for Pico 4/Neo 3 PRE PUI 5.2.x (same as `build-alxr-android --pico-v4`), then copy binaries to build folder
     build-ffmpeg-linux  Build FFmpeg with VAAPI, NvEnc and Vulkan support. Only for CI
     publish-server      Build server in release mode, make portable version and installer
     publish-client      Build client for all headsets
@@ -59,7 +60,8 @@ FLAGS:
     --bundle-ffmpeg     Bundle ffmpeg libraries. Only used for build-server subcommand on Linux
     --no-nvidia         Additional flag to use with `build-server` or `build-alxr-client`. Disables nVidia/CUDA support.
     --gpl               Enables usage of GPL libs like ffmpeg on Windows, allowing software encoding.
-    --ffmpeg-version    Bundle ffmpeg libraries. Only used for build-alxr-client subcommand on Linux          
+    --ffmpeg-version    Bundle ffmpeg libraries. Only used for build-alxr-client subcommand on Linux
+    --oculus-ext        Enables using Oculus OpenXR extensions (headers), Used only for build-alxr-client subcommand
     --help              Print this text
 
 ARGS:
@@ -416,6 +418,7 @@ pub struct AlxBuildFlags {
     no_nvidia: bool,
     bundle_ffmpeg: bool,
     fetch_crates: bool,
+    oculus_ext: bool,
 }
 
 impl Default for AlxBuildFlags {
@@ -426,6 +429,7 @@ impl Default for AlxBuildFlags {
             no_nvidia: true,
             bundle_ffmpeg: true,
             fetch_crates: false,
+            oculus_ext: false,
         }
     }
 }
@@ -433,9 +437,11 @@ impl Default for AlxBuildFlags {
 impl AlxBuildFlags {
     pub fn make_build_string(&self) -> String {
         let enable_bundle_ffmpeg = cfg!(target_os = "linux") && self.bundle_ffmpeg;
+        let enable_oculus_ext = cfg!(target_os = "windows") && self.oculus_ext;
         let feature_map = vec![
             (enable_bundle_ffmpeg, "bundled-ffmpeg"),
             (!self.no_nvidia, "cuda-interop"),
+            (enable_oculus_ext, "oculus-ext-headers"),
         ];
 
         let flag_map = vec![
@@ -887,7 +893,8 @@ fn install_alxr_depends() {
 pub enum AndroidFlavor {
     Generic,
     OculusQuest, // Q1 or Q2
-    PicoNeo3,
+    Pico,        // PUI >= 5.2.x
+    PicoV4,      // PUI >= 4.7.x && < 5.2.x
 }
 
 pub fn build_alxr_android(
@@ -913,7 +920,8 @@ pub fn build_alxr_android(
 
     let client_dir = match client_flavor {
         AndroidFlavor::OculusQuest => "quest",
-        AndroidFlavor::PicoNeo3 => "pico-neo",
+        AndroidFlavor::Pico => "pico",
+        AndroidFlavor::PicoV4 => "pico-v4",
         _ => "",
     };
     // cargo-apk has an issue where it will search the entire "target" build directory for "output" files that contain
@@ -1016,8 +1024,10 @@ fn main() {
         let for_oculus_quest = args.contains("--oculus-quest");
         let for_oculus_go = args.contains("--oculus-go");
         let for_generic = args.contains("--generic");
-        let for_pico_neo = args.contains("--pico-neo");
+        let for_pico = args.contains("--pico");
+        let for_pico_neo_v4 = args.contains("--pico-v4");
         let for_all_flavors = args.contains("--all-flavors");
+        let oculus_ext = args.contains("--oculus-ext");
         //
         let bundle_ffmpeg = args.contains("--bundle-ffmpeg");
         let no_nvidia = args.contains("--no-nvidia");
@@ -1038,9 +1048,8 @@ fn main() {
 
         if args.finish().is_empty() {
             match subcommand.as_str() {
-                //SHN 关闭 依赖项初建及更新
-                //"build-windows-deps" => dependencies::build_deps("windows"),
-               // "build-android-deps" => dependencies::build_deps("android"),
+                "build-windows-deps" => dependencies::build_deps("windows"),
+                "build-android-deps" => dependencies::build_deps("android"),
                 "build-server" => build_server(
                     is_release,
                     experiments,
@@ -1069,6 +1078,7 @@ fn main() {
                         no_nvidia: no_nvidia,
                         bundle_ffmpeg: bundle_ffmpeg,
                         fetch_crates: fetch,
+                        oculus_ext: oculus_ext,
                         ..Default::default()
                     },
                 ),
@@ -1134,7 +1144,8 @@ fn main() {
                     let flavours = vec![
                         (for_generic, AndroidFlavor::Generic),
                         (for_oculus_quest, AndroidFlavor::OculusQuest),
-                        (for_pico_neo, AndroidFlavor::PicoNeo3),
+                        (for_pico, AndroidFlavor::Pico),
+                        (for_pico_neo_v4, AndroidFlavor::PicoV4),
                     ];
 
                     for (_, flavour) in flavours.iter().filter(|(f, _)| for_all_flavors || *f) {
@@ -1158,7 +1169,19 @@ fn main() {
                 ),
                 "build-alxr-pico" => build_alxr_android(
                     root,
-                    AndroidFlavor::PicoNeo3,
+                    AndroidFlavor::Pico,
+                    AlxBuildFlags {
+                        is_release: is_release,
+                        reproducible: reproducible,
+                        no_nvidia: true,
+                        bundle_ffmpeg: false,
+                        fetch_crates: fetch,
+                        ..Default::default()
+                    },
+                ),
+                "build-alxr-pico-v4" => build_alxr_android(
+                    root,
+                    AndroidFlavor::PicoV4,
                     AlxBuildFlags {
                         is_release: is_release,
                         reproducible: reproducible,

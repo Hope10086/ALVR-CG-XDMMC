@@ -1,6 +1,7 @@
 //========= Copyright Valve Corporation ============//
 
 #include "driverlog.h"
+
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -32,6 +33,7 @@ void CleanupDriverLog()
 		s_pLogFile->Log(buf);
 }
 
+
 void DriverLog(const char* pMsgFormat, ...)
 {
 	va_list args;
@@ -48,7 +50,9 @@ void DebugDriverLog(const char* pMsgFormat, ...)
 #ifdef _DEBUG
 	va_list args;
 	va_start(args, pMsgFormat);
+
 	DriverLogVarArgs(pMsgFormat, args);
+
 	va_end(args);
 #else
 	(void)pMsgFormat;

@@ -147,21 +147,15 @@ void Settings::Load()
 
 		m_useHeadsetTrackingSystem = config.get("use_headset_tracking_system").get<bool>();
 
-//SHN   将注视点渲染按钮的 链接到保存 原始dds 使能 原注视点渲染使能 保持false
-// 最好还是换个按钮比较好
 		m_enableFoveatedRendering = config.get("enable_foveated_rendering").get<bool>();
-		//m_enableFoveatedRendering = false;
-		//m_captureLayerDDSTrigger = config.get("enable_foveated_rendering").get<bool>();
-//end
 		m_foveationCenterSizeX = (float)config.get("foveation_center_size_x").get<double>();
 		m_foveationCenterSizeY = (float)config.get("foveation_center_size_y").get<double>();
 		m_foveationCenterShiftX = (float)config.get("foveation_center_shift_x").get<double>();
 		m_foveationCenterShiftY = (float)config.get("foveation_center_shift_y").get<double>();
 		m_foveationEdgeRatioX = (float)config.get("foveation_edge_ratio_x").get<double>();
 		m_foveationEdgeRatioY = (float)config.get("foveation_edge_ratio_y").get<double>();
-//SHN： 开关改为颜色校准
+
 		m_enableColorCorrection = config.get("enable_color_correction").get<bool>();
-		m_captureLayerDDSTrigger= config.get("enable_color_correction").get<bool>();
 		m_brightness = (float)config.get("brightness").get<double>();
 		m_contrast = (float)config.get("contrast").get<double>();
 		m_saturation = (float)config.get("saturation").get<double>();
@@ -169,12 +163,10 @@ void Settings::Load()
 		m_sharpening = (float)config.get("sharpening").get<double>();
 
 		m_enableFec = config.get("enable_fec").get<bool>();
-//SHN     类似于注视点渲染的操作
+
 		m_enableLinuxVulkanAsync = config.get("linux_async_reprojection").get<bool>();
-		//m_enableLinuxVulkanAsync=false;
-		//m_captureLayerDDSTrigger=config.get("linux_async_reprojection").get<bool>();
-		//SHNChanged
-		//Debug("Config JSON: %hs\n", json.c_str());
+		
+		Debug("Config JSON: %hs\n", json.c_str());
 		Info("Serial Number: %hs\n", mSerialNumber.c_str());
 		Info("Model Number: %hs\n", mModelNumber.c_str());
 		Info("Render Target: %d %d\n", m_renderWidth, m_renderHeight);

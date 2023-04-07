@@ -1,6 +1,6 @@
 #include "CEncoder.h"
 
-//SHN 2020-3-6
+
 		CEncoder::CEncoder()
 			: m_bExiting(false)
 			, m_targetTimestampNs(0)
@@ -62,18 +62,15 @@
 			throw MakeException("All VideoEncoder are not available. VCE: %s, NVENC: %s", vceException.what(), nvencException.what());
 #endif
 		}
-//SHN  :编码前准备
+
 		bool CEncoder::CopyToStaging(ID3D11Texture2D *pTexture[][2], vr::VRTextureBounds_t bounds[][2], int layerCount, bool recentering
 			, uint64_t presentationTime, uint64_t targetTimestampNs, const std::string& message, const std::string& debugText)
 		{
 			m_presentationTime = presentationTime;
 			m_targetTimestampNs = targetTimestampNs;
-			m_FrameRender->Startup();  // 启动帧渲染相应的模块，是仅针对一帧画面的吗？每一帧都要重新开始初始化一下
-			//其实这两个模块写成一个函数也可以 前边都是初始 内容：销毁以前的渲染数据 创建相关3D11Render 里的变量 
-			//然后RenderFrame 进行变量的读写    
+			m_FrameRender->Startup();
+
 			m_FrameRender->RenderFrame(pTexture, bounds, layerCount, recentering, message, debugText);
-			// SHN：保存深度信息
-			m_FrameRender->SaveDepth(presentationTime,targetTimestampNs);
 			return true;
 		}
 
@@ -90,11 +87,9 @@
 				if (m_bExiting)
 					break;
 
-				if (m_FrameRender->GetTexture())//执行获取纹理
-				{   //这里是在渲染进行完成后 将渲染后的数据 传输给编码器 第一项是纹理（ 双眼的）
+				if (m_FrameRender->GetTexture())
+				{
 					m_videoEncoder->Transmit(m_FrameRender->GetTexture().Get(), m_presentationTime, m_targetTimestampNs, m_scheduler.CheckIDRInsertion());
-					//SHN：再传输一个深度图：
-
 				}
 
 				m_encodeFinished.Set();

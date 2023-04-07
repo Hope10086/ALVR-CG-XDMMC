@@ -20,6 +20,9 @@ ndk = "0.7" #{ path = "../ndk", features = ["trace"] }
 ndk-glue = "0.7" #{ path = "../ndk-glue", features = ["logger"] }
 ndk-context = "0.1"
 libloading = "0.7"
+lazy_static = "1"
+parking_lot = "0.12"
+version-compare = "0.1"
 
 [package.metadata.android]
 build_targets = ["aarch64-linux-android", "armv7-linux-androideabi", "x86_64-linux-android", "i686-linux-android"]
@@ -118,6 +121,7 @@ min_sdk_version = 28#24 # for offical low-latency medicodec mode to be enabled, 
 "android:debuggable" = "false"
 "android:hardwareAccelerated" = "true"
 "android:allowBackup" = "false"
+"android:hasCode" = "false"
 
 # Adds extra arbitrary XML attributes to the <activity> tag in the manifest.
 # See https://developer.android.com/guide/topics/manifest/activity-element.html
@@ -202,6 +206,25 @@ required = true
 # [[package.metadata.android.uses_feature]]
 # name = "wave.feature.simultaneous_interaction"
 # required = true
+#<uses-feature
+#    android:name="wave.feature.eyetracking"
+#    android:required="true" />
+#
+[[package.metadata.android.uses_feature]]
+name = "wave.feature.eyetracking"
+required = true
+
+#<uses-feature
+#    android:name="wave.feature.lipexpression"
+#    android:required="true" />
+[[package.metadata.android.uses_feature]]
+name = "wave.feature.lipexpression"
+required = true
+
+# <uses-feature android:name="com.magicleap.api_level" android:version="20" />
+[[package.metadata.android.uses_feature]]
+name = "com.magicleap.api_level"
+version = 20
 
 # See https://developer.android.com/guide/topics/manifest/uses-permission-element
 #
@@ -229,9 +252,23 @@ name = "android.permission.INTERNET"
 [[package.metadata.android.uses_permission]]
 name = "android.permission.ACCESS_NETWORK_STATE"
 
+# <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+[[package.metadata.android.uses_permission]]
+name = "android.permission.ACCESS_WIFI_STATE"
+
+# android.permission.WAKE_LOCK
+[[package.metadata.android.uses_permission]]
+name = "android.permission.WAKE_LOCK"
+
  #<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 [[package.metadata.android.uses_permission]]
 name = "android.permission.READ_EXTERNAL_STORAGE"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.VIBRATE"
+
+#[[package.metadata.android.uses_permission]]
+#name = "android.permission.CAMERA"
 
 #<!-- Allows to access TrackingEnvironment functionality -->
 # [[package.metadata.android.uses_permission]]
@@ -246,6 +283,14 @@ name = "android.permission.READ_EXTERNAL_STORAGE"
 
 # [[package.metadata.android.uses_permission]]
 # name = "com.oculus.permission.HAND_TRACKING"
+
+#<uses-permission android:name="com.magicleap.permission.HAND_TRACKING" />
+[[package.metadata.android.uses_permission]]
+name = "com.magicleap.permission.HAND_TRACKING"
+
+#<uses-permission android:name="com.magicleap.permission.EYE_TRACKING" />
+[[package.metadata.android.uses_permission]]
+name = "com.magicleap.permission.EYE_TRACKING"
 
 [[package.metadata.android.uses_permission]]
 name = "org.khronos.openxr.permission.OPENXR"
@@ -264,6 +309,16 @@ authorities = "org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runti
  # `name` attribute is not to be part of query-provider but cargo-apk uses aapt which throws errors without
  # possibly needs to change to use appt2
 name = "org.khronos.openxr"
+
+# For Lynx R1
+[[package.metadata.android.queries.intent]]
+actions = ["org.khronos.openxr.OpenXRRuntimeService"]
+# For Lynx R1
+[[package.metadata.android.queries.package]]
+name = "com.ultraleap.tracking.service"
+# For Lynx R1
+[[package.metadata.android.queries.package]]
+name = "com.ultraleap.openxr.api_layer"
 
 # See https://developer.android.com/guide/topics/manifest/application-element
 [package.metadata.android.application]
@@ -289,6 +344,8 @@ theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen"
 label = "alxr_client"
 
 allow_backup = false
+
+has_code = false
 
 # See https://developer.android.com/guide/topics/manifest/meta-data-element
 #

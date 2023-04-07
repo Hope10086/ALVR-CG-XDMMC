@@ -87,20 +87,14 @@ void FFR::Initialize(ID3D11Texture2D* compositionTexture) {
 	mOptimizedTexture = CreateTexture(mDevice.Get(), fovVars.optimizedEyeWidth * 2,
 		fovVars.optimizedEyeHeight, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
 
-//SHN  SuperFVR 开关
-   // int m_SuperFVR  = 0;
-	if(true/*Settings::Instance().m_SuperFVR*/){
-	  if (Settings::Instance().m_enableFoveatedRendering) {
+	if (Settings::Instance().m_enableFoveatedRendering) {
 		std::vector<uint8_t> compressAxisAlignedShaderCSO(COMPRESS_AXIS_ALIGNED_CSO_PTR, COMPRESS_AXIS_ALIGNED_CSO_PTR + COMPRESS_AXIS_ALIGNED_CSO_LEN);
 		auto compressAxisAlignedPipeline = RenderPipeline(mDevice.Get());
 		compressAxisAlignedPipeline.Initialize({ compositionTexture }, mQuadVertexShader.Get(),
 			compressAxisAlignedShaderCSO, mOptimizedTexture.Get(), foveatedRenderingBuffer.Get());
 
 		mPipelines.push_back(compressAxisAlignedPipeline);
-	   } 
-
-	}
-	else {
+	} else {
 		mOptimizedTexture = compositionTexture;
 	}
 }
