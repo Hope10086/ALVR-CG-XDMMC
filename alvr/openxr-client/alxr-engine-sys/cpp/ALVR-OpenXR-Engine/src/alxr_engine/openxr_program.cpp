@@ -3251,9 +3251,9 @@ struct OpenXrProgram final : IOpenXrProgram {
                 newVRCFTPacket.eyeGazePoses[0].orientation.y,
                 newVRCFTPacket.eyeGazePoses[0].orientation.z,
                 newVRCFTPacket.eyeGazePoses[0].orientation.w, 
-                gazeDirection[0].x, 
-                gazeDirection[0].y,
-                gazeDirection[0].z
+                gazeDirection[0].x* (180.0 / 3.14159265358979323846), 
+                gazeDirection[0].y* (180.0 / 3.14159265358979323846),
+                gazeDirection[0].z* (180.0 / 3.14159265358979323846)
                 ));
                 /* 经测试 左右眼数据是一样的
                 Log::Write(Log::Level::Info, Fmt("Right Eye Poses: (%f,%f,%f) (%f,%f,%f,%f)\n",
@@ -3303,9 +3303,9 @@ struct OpenXrProgram final : IOpenXrProgram {
             HeadPose_Orientation.y,
             HeadPose_Orientation.z,
             HeadPose_Orientation.w,
-            headDirection.x,
-            headDirection.y, 
-            headDirection.z
+            headDirection.x* (180.0 / 3.14159265358979323846),
+            headDirection.y* (180.0 / 3.14159265358979323846), 
+            headDirection.z* (180.0 / 3.14159265358979323846)
             ) );    
         
         //eyeposes
