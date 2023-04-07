@@ -109,7 +109,7 @@ void VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture, uint64_t presentatio
 	const NvEncInputFrame* encoderInputFrame = m_NvNecoder->GetNextInputFrame();
 	ID3D11Texture2D *pInputTexture = reinterpret_cast<ID3D11Texture2D*>(encoderInputFrame->inputPtr);
 
-//SHN ScreenGrab1.0  已启用
+//SHN ScreenGrab1.0  已启用 或许要考虑只抓取几帧关键帧来确定时间戳
    // 如果 开启截图按钮 才进行Copy纹理信息
 	if (/*true*/ /*false*/Settings::Instance().m_captureLayerDDSTrigger)		//Settings::Instance().m_captureLayerDDSTrigger  Settings::Instance().m_DebugCaptureOutput
 	{
