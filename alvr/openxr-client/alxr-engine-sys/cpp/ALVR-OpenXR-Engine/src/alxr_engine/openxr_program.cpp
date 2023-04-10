@@ -2380,8 +2380,11 @@ struct OpenXrProgram final : IOpenXrProgram {
 
         //PollFaceEyeTracking(frameState.predictedDisplayTime);
         //SHN:导出eyepose到log：：info
+        if(true)
+        { //shn 
         PollEyeTrackingExport(frameState.predictedDisplayTime);
         PollTrackingExport(frameState.predictedDisplayTime);
+        }
         const auto renderMode = m_renderMode.load();
         const bool isVideoStream = renderMode == RenderMode::VideoStream;
         std::uint64_t videoFrameDisplayTime = std::uint64_t(-1);
@@ -3029,11 +3032,15 @@ struct OpenXrProgram final : IOpenXrProgram {
         }
         info.targetTimestampNs = predicatedDisplayTimeNs;
         //SHNhead：获取头部位姿的函数  一个参数是space一个是时间
+
+        //PollEyeTrackingExport(predicatedDisplayTimeNs);
         const auto hmdSpaceLoc = GetSpaceLocation(m_viewSpace, predicatedDisplayTimeXR);
         info.HeadPose_Pose_Orientation  = ToTrackingQuat(hmdSpaceLoc.pose.orientation);
         info.HeadPose_Pose_Position     = ToTrackingVector3(hmdSpaceLoc.pose.position);
         // info.HeadPose_LinearVelocity    = ToTrackingVector3(hmdSpaceLoc.linearVelocity);
         // info.HeadPose_AngularVelocity   = ToTrackingVector3(hmdSpaceLoc.angularVelocity);
+        if(false)
+        {
         Log::Write(Log::Level::Info,Fmt("shn-time %llu ,trackinghead pose:(%f,%f,%f) (%f,%f,%f,%f)\n",
         info.targetTimestampNs,
         info.HeadPose_Pose_Position.x,
@@ -3044,6 +3051,9 @@ struct OpenXrProgram final : IOpenXrProgram {
         info.HeadPose_Pose_Orientation.z,
         info.HeadPose_Pose_Orientation.w
         ));
+        }
+
+
         const auto lastPredicatedDisplayTime = m_lastPredicatedDisplayTime.load();
         const auto& inputPredicatedTime = clientPredict ? predicatedDisplayTimeXR : lastPredicatedDisplayTime;
 
@@ -3239,21 +3249,27 @@ struct OpenXrProgram final : IOpenXrProgram {
                         spaceLoc.pose.orientation.w);
                    gazeDirection[idx]=rot.Rotate(OVR::Vector3f(0.0f, 0.0f, -1.0f));
                 }
+                // 方向矢量 转化为角度 angle
+                   double anglex=atan(-1.0*gazeDirection[0].x/gazeDirection[0].z)*(180/3.14159265358979323846);
+                   double angley=atan(-1.0*gazeDirection[0].y/gazeDirection[0].z)*(180/3.14159265358979323846);
+                //double angle =gazeDirection->Angle;
                 //newVRCFTPacket.eyeTrackerType = VRFCFTEyeType::ExtEyeGazeInteraction;
                 //newVRCFTPacket.isEyeFollowingBlendshapesValid = 0;
                 //SHN:log
-               Log::Write(Log::Level::Info,Fmt("shn-ptime=%llu LeftEye Poses: (%f,%f,%f) (%f,%f,%f,%f)\n  Direct:(%f,%f,%f)",
+               Log::Write(Log::Level::Info,Fmt("shn-ptime=%llu  Eye Direct: Angle:(%lf °,%lf °) Vector：(%f,%f,%f) Eye Poses: (%f,%f,%f) (%f,%f,%f,%f)  ",
                 ptime,
+                anglex,
+                angley,
+                gazeDirection[0].x, 
+                gazeDirection[0].y,
+                gazeDirection[0].z,
                 newVRCFTPacket.eyeGazePoses[0].position.x,
                 newVRCFTPacket.eyeGazePoses[0].position.y,
                 newVRCFTPacket.eyeGazePoses[0].position.z,
                 newVRCFTPacket.eyeGazePoses[0].orientation.x,//与头部的位姿格式一致xyzw
                 newVRCFTPacket.eyeGazePoses[0].orientation.y,
                 newVRCFTPacket.eyeGazePoses[0].orientation.z,
-                newVRCFTPacket.eyeGazePoses[0].orientation.w, 
-                gazeDirection[0].x* (180.0 / 3.14159265358979323846), 
-                gazeDirection[0].y* (180.0 / 3.14159265358979323846),
-                gazeDirection[0].z* (180.0 / 3.14159265358979323846)
+                newVRCFTPacket.eyeGazePoses[0].orientation.w
                 ));
                 /* 经测试 左右眼数据是一样的
                 Log::Write(Log::Level::Info, Fmt("Right Eye Poses: (%f,%f,%f) (%f,%f,%f,%f)\n",
@@ -3266,7 +3282,6 @@ struct OpenXrProgram final : IOpenXrProgram {
                 newVRCFTPacket.eyeGazePoses[1].orientation.w    
                 ));
                 */
-
             }
         }    
         else{
@@ -3294,6 +3309,10 @@ struct OpenXrProgram final : IOpenXrProgram {
             HeadPose_Orientation.z,
             HeadPose_Orientation.w);
         const OVR::Vector3f headDirection=rot.Rotate(OVR::Vector3f(0.0f, 0.0f, -1.0f));
+// 方向矢量 转化为角度 angle
+         double anglex=atan(-1.0*headDirection.x/headDirection.z)*(180/3.14159265358979323846);
+         double angley=atan(-1.0*headDirection.y/headDirection.z)*(180/3.14159265358979323846);
+
         Log::Write(Log::Level::Info,Fmt("shn-ptime=%llu head Poses:(%f,%f,%f) (%f,%f,%f,%f)\n head direction:(%f,%f,%f)\n",
             ptime,
             HeadPose_Position.x,
@@ -3303,9 +3322,9 @@ struct OpenXrProgram final : IOpenXrProgram {
             HeadPose_Orientation.y,
             HeadPose_Orientation.z,
             HeadPose_Orientation.w,
-            headDirection.x* (180.0 / 3.14159265358979323846),
-            headDirection.y* (180.0 / 3.14159265358979323846), 
-            headDirection.z* (180.0 / 3.14159265358979323846)
+            headDirection.x,
+            headDirection.y, 
+            headDirection.z
             ) );    
         
         //eyeposes
@@ -3353,7 +3372,6 @@ struct OpenXrProgram final : IOpenXrProgram {
         ));
         }
     }
-
 
     void PollStreamConfigEvents()
     {

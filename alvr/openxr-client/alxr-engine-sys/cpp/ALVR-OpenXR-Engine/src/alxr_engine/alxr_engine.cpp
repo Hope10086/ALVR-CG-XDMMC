@@ -352,7 +352,7 @@ void alxr_on_tracking_update(const bool clientsidePrediction)
         std::abs(newEyeInfo.eyeFov[1].left - gLastEyeInfo.eyeFov[1].left) > 0.01f)
     {
         gLastEyeInfo = newEyeInfo;
-        gRustCtx->viewsConfigSend(&newEyeInfo);
+        gRustCtx->viewsConfigSend(&newEyeInfo);//shn
         LogViewConfig(newEyeInfo);
     }
 
