@@ -3031,9 +3031,7 @@ struct OpenXrProgram final : IOpenXrProgram {
                 m_trackingFrameMap.erase(m_trackingFrameMap.begin());
         }
         info.targetTimestampNs = predicatedDisplayTimeNs;
-        //SHNhead：获取头部位姿的函数  一个参数是space一个是时间
-
-        //PollEyeTrackingExport(predicatedDisplayTimeNs);
+        //head/controler Tracking
         const auto hmdSpaceLoc = GetSpaceLocation(m_viewSpace, predicatedDisplayTimeXR);
         info.HeadPose_Pose_Orientation  = ToTrackingQuat(hmdSpaceLoc.pose.orientation);
         info.HeadPose_Pose_Position     = ToTrackingVector3(hmdSpaceLoc.pose.position);
@@ -3056,11 +3054,11 @@ struct OpenXrProgram final : IOpenXrProgram {
 
         const auto lastPredicatedDisplayTime = m_lastPredicatedDisplayTime.load();
         const auto& inputPredicatedTime = clientPredict ? predicatedDisplayTimeXR : lastPredicatedDisplayTime;
-
+        // Hand Tracking:
         for (const auto hand : { Side::LEFT, Side::RIGHT }) {
             auto& newContInfo = info.controller[hand];
             const auto spaceLoc = GetHandSpaceLocation(hand, inputPredicatedTime);
-        // 位移与速度
+        
             newContInfo.position        = ToTrackingVector3(spaceLoc.pose.position);
             newContInfo.orientation     = ToTrackingQuat(spaceLoc.pose.orientation);
             newContInfo.linearVelocity  = ToTrackingVector3(spaceLoc.linearVelocity);
@@ -3250,16 +3248,16 @@ struct OpenXrProgram final : IOpenXrProgram {
                    gazeDirection[idx]=rot.Rotate(OVR::Vector3f(0.0f, 0.0f, -1.0f));
                 }
                 // 方向矢量 转化为角度 angle
-                   double anglex=atan(-1.0*gazeDirection[0].x/gazeDirection[0].z)*(180/3.14159265358979323846);
-                   double angley=atan(-1.0*gazeDirection[0].y/gazeDirection[0].z)*(180/3.14159265358979323846);
+                   double angle_x=atan(-1.0*gazeDirection[0].x/gazeDirection[0].z)*(180/3.14159265358979323846);
+                   double angle_y=atan(-1.0*gazeDirection[0].y/gazeDirection[0].z)*(180/3.14159265358979323846);
                 //double angle =gazeDirection->Angle;
                 //newVRCFTPacket.eyeTrackerType = VRFCFTEyeType::ExtEyeGazeInteraction;
                 //newVRCFTPacket.isEyeFollowingBlendshapesValid = 0;
                 //SHN:log
                Log::Write(Log::Level::Info,Fmt("shn-ptime=%llu  Eye Direct: Angle:(%lf °,%lf °) Vector：(%f,%f,%f) Eye Poses: (%f,%f,%f) (%f,%f,%f,%f)  ",
                 ptime,
-                anglex,
-                angley,
+                angle_x,
+                angle_y,
                 gazeDirection[0].x, 
                 gazeDirection[0].y,
                 gazeDirection[0].z,

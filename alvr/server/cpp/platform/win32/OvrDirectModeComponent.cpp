@@ -138,18 +138,37 @@ void OvrDirectModeComponent::SubmitLayer(const SubmitLayerPerEye_t(&perEye)[2])
 			// found the frameIndex
 			m_prevTargetTimestampNs = m_targetTimestampNs;
 			m_targetTimestampNs = pose->info.targetTimestampNs;
-
+           //加到这里就好的
 			m_prevFramePoseRotation = m_framePoseRotation;
 			m_framePoseRotation.x = pose->info.HeadPose_Pose_Orientation.x;
 			m_framePoseRotation.y = pose->info.HeadPose_Pose_Orientation.y;
 			m_framePoseRotation.z = pose->info.HeadPose_Pose_Orientation.z;
 			m_framePoseRotation.w = pose->info.HeadPose_Pose_Orientation.w;
-
-			Debug("Frame pose found. m_prevSubmitFrameIndex=%llu m_submitFrameIndex=%llu\n", m_prevTargetTimestampNs, m_targetTimestampNs);
+			//Debug("Frame pose found. m_prevSubmitFrameIndex=%llu m_submitFrameIndex=%llu\n", m_prevTargetTimestampNs, m_targetTimestampNs);
+		    m_prevFramePosePosition = m_framePosePosition;
+			m_framePosePosition.v[0] = pose->info.HeadPose_Pose_Position.x;
+            m_framePosePosition.v[1] = pose->info.HeadPose_Pose_Position.y;
+			m_framePosePosition.v[2] = pose->info.HeadPose_Pose_Position.z;
+           //eye orientation 
+		   m_preFrameGazeRotation = m_frameGazeRotation;
+		   m_frameGazeRotation.x = pose->info.EyeGaze_Pose_Orientation.x;
+           m_frameGazeRotation.y = pose->info.EyeGaze_Pose_Orientation.y;
+           m_frameGazeRotation.z = pose->info.EyeGaze_Pose_Orientation.z;
+           m_frameGazeRotation.w = pose->info.EyeGaze_Pose_Orientation.w;
+		   //eye direction	
+		   m_preFrameGazeDirection = m_frameGazeDirection;
+		   m_frameGazeDirection.v[0] = pose->info.EyeGaze_Direction.x;
+		   m_frameGazeDirection.v[1] = pose->info.EyeGaze_Direction.y;
+		   m_frameGazeDirection.v[2] = pose->info.EyeGaze_Direction.z;
+		
 		}
 		else {
 			m_targetTimestampNs = 0;
 			m_framePoseRotation = HmdQuaternion_Init(0.0, 0.0, 0.0, 0.0);
+			//shn
+			//m_framePosePosition = {0.0f, 0.0f, 0.0f};
+			m_frameGazeRotation = HmdQuaternion_Init(0.0, 0.0, 0.0, 0.0);
+			//m_frameGazeDirection ={0.0f, 0.0f, 0.0f};
 		}
 	}
 	if (m_submitLayer < MAX_LAYERS) {
@@ -285,7 +304,29 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
 		uint64_t submitFrameIndex = m_targetTimestampNs + Settings::Instance().m_trackingFrameOffset;
 		Debug("Fix frame index. FrameIndex=%llu Offset=%d New FrameIndex=%llu\n"
 			, m_targetTimestampNs, Settings::Instance().m_trackingFrameOffset, submitFrameIndex);
+// log 输出部分：     
 
+	    if(Settings::Instance().m_captureLayerDDSTrigger)
+		{
+		double angle_x=atan(-1.0*m_frameGazeDirection.v[0]/m_frameGazeDirection.v[2])*(180/3.14159265358979323846);
+		double angle_y=atan(-1.0*m_frameGazeDirection.v[1]/m_frameGazeDirection.v[2])*(180/3.14159265358979323846);	
+        TxtPrint(" Offset=%d New FrameIndex=%llu  HeadPosition=(%lf, %lf, %lf) HeadRotation=(%lf, %lf, %lf, %lf) \n   Angle(%lf °,%lf °) EyeGazeDirection=(%lf, %lf, %lf) \n"
+		      , Settings::Instance().m_trackingFrameOffset
+		      , submitFrameIndex
+		      ,m_framePosePosition.v[0]
+		      ,m_framePosePosition.v[1]
+		      ,m_framePosePosition.v[2]
+		      ,m_framePoseRotation.x
+		      ,m_framePoseRotation.y
+		      ,m_framePoseRotation.z
+		      ,m_framePoseRotation.w
+		      ,angle_x
+		      ,angle_y
+              ,m_frameGazeDirection.v[0]
+		      ,m_frameGazeDirection.v[1]
+		      ,m_frameGazeDirection.v[2]
+		);
+		}
 		// Copy entire texture to staging so we can read the pixels to send to remote device.
 		m_pEncoder->CopyToStaging(pTexture, bounds, layerCount,false, presentationTime, submitFrameIndex,"", debugText);
 

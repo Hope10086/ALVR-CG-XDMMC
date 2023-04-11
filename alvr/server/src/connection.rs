@@ -783,7 +783,7 @@ async fn connection_pipeline() -> StrResult {
             z: vec.z,
         }
     }
-
+//shn-
     let input_receive_loop = {
         let mut receiver = stream_socket.subscribe_to_stream::<Input>(INPUT).await?;
         async move {
@@ -796,7 +796,14 @@ async fn connection_pipeline() -> StrResult {
                     .find(|(id, _)| *id == *HEAD_ID)
                     .unwrap()
                     .1;
-
+//shn  changed 
+                let eye_motion =&input
+                    .device_motions
+                    .iter()
+                    .find(|(id, _)| *id == *HEAD_ID)
+                    .unwrap()
+                    .1;
+//end
                 let left_hand_motion = &input
                     .device_motions
                     .iter()
@@ -810,11 +817,15 @@ async fn connection_pipeline() -> StrResult {
                     .find(|(id, _)| *id == *RIGHT_HAND_ID)
                     .unwrap()
                     .1;
-
+//shn
                 let tracking_info = TrackingInfo {
                     targetTimestampNs: input.target_timestamp.as_nanos() as _,
                     HeadPose_Pose_Orientation: to_tracking_quat(head_motion.orientation),
                     HeadPose_Pose_Position: to_tracking_vector3(head_motion.position),
+                    //shn-
+                    EyeGaze_Pose_Orientation:to_tracking_quat(eye_motion.orientation),
+                    EyeGaze_Direction:to_tracking_vector3(eye_motion.position),
+
                     mounted: input.legacy.mounted,
                     controller: [
                         TrackingInfo_Controller {

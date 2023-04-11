@@ -266,7 +266,7 @@ vr::EVRInitError OvrHmd::Activate(vr::TrackedDeviceIndex_t unObjectId) {
 
             m_VSyncThread = std::make_shared<VSyncThread>(Settings::Instance().m_refreshRate);
             m_VSyncThread->Start();
-
+            // shn -:
             m_directModeComponent =
                 std::make_shared<OvrDirectModeComponent>(m_D3DRender, m_poseHistory);
 #endif
@@ -308,7 +308,7 @@ void *OvrHmd::GetComponent(const char *component_name_and_version) {
 }
 
 vr::DriverPose_t OvrHmd::GetPose() {
-    vr::DriverPose_t pose = {};
+    vr::DriverPose_t pose = {};//另一种pose 的结构体/类
     pose.poseIsValid = true;
     pose.result = vr::TrackingResult_Running_OK;
     pose.deviceIsConnected = true;
@@ -346,7 +346,7 @@ vr::DriverPose_t OvrHmd::GetPose() {
 
     return pose;
 }
-
+// hmd_pose update
 void OvrHmd::OnPoseUpdated(TrackingInfo info) {
     if (this->object_id != vr::k_unTrackedDeviceIndexInvalid) {
         // if 3DOF, zero the positional data!
@@ -356,16 +356,16 @@ void OvrHmd::OnPoseUpdated(TrackingInfo info) {
             info.HeadPose_Pose_Position.z = 0;
         }
 
-        m_TrackingInfo = info;
+        m_TrackingInfo = info; //用于了DriverPose_t OvrHmd::GetPose里了
 
         // TODO: Right order?
 
         if (!Settings::Instance().m_disableController) {
-            updateController(info);
+            updateController(info);  //hand 
         }
-
+          //historybuffer
         m_poseHistory->OnPoseUpdated(info);
-
+          // VR Driver
         vr::VRServerDriverHost()->TrackedDevicePoseUpdated(
             this->object_id, GetPose(), sizeof(vr::DriverPose_t));
 

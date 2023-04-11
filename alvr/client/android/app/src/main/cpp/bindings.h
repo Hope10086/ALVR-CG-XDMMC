@@ -27,6 +27,7 @@ struct TrackingInfo {
     TrackingQuat HeadPose_Pose_Orientation;
     TrackingVector3 HeadPose_Pose_Position;
 
+
     unsigned char mounted;
 
     static const unsigned int MAX_CONTROLLERS = 2;
@@ -57,6 +58,17 @@ struct TrackingInfo {
         TrackingVector3 boneRootPosition;
         unsigned int handFingerConfidences;
     } controller[2];
+};
+
+struct EyeGazeInfo {
+    unsigned long long targetTimestampNs;
+    TrackingQuat EyeGaze_Pose_Orientation;
+    TrackingVector3  EyeGaze_Direction;
+};
+struct TracingInfo2 {
+    TrackingInfo TrackingInfo;
+    EyeGazeInfo EyeGazeInfo;
+
 };
 // Client >----(mode 0)----> Server
 // Client <----(mode 1)----< Server

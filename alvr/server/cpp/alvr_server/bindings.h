@@ -25,10 +25,11 @@ struct TrackingVector2 {
 struct TrackingInfo {
     unsigned long long targetTimestampNs;
     TrackingQuat HeadPose_Pose_Orientation;
-    TrackingVector3 HeadPose_Pose_Position;
-
+    TrackingVector3 HeadPose_Pose_Position;//hmd   
+    TrackingQuat  EyeGaze_Pose_Orientation;
+    TrackingVector3  EyeGaze_Direction;
     unsigned char mounted;
-
+    //hand
     static const unsigned int MAX_CONTROLLERS = 2;
     struct Controller {
         bool enabled;
@@ -58,6 +59,7 @@ struct TrackingInfo {
         unsigned int handFingerConfidences;
     } controller[2];
 };
+
 // Client >----(mode 0)----> Server
 // Client <----(mode 1)----< Server
 // Client >----(mode 2)----> Server

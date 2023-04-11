@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "reedsolomon/rs.h"
 #include "../app/src/main/cpp/bindings.h"
-
+//shn-packet
 enum ALVR_PACKET_TYPE {
 	ALVR_PACKET_TYPE_TRACKING_INFO = 6,
 	ALVR_PACKET_TYPE_TIME_SYNC = 7,
