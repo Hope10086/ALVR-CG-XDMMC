@@ -3050,6 +3050,32 @@ struct OpenXrProgram final : IOpenXrProgram {
         info.HeadPose_Pose_Orientation.w
         ));
         }
+        // shn-Eye Tracking 
+        const auto GazeSpaceLocOption = m_interactionManager->GetEyeGazeSpaceLocation(m_viewSpace, predicatedDisplayTimeXR);
+        const auto& GazeSpaceLoc=GazeSpaceLocOption.value();
+        if (Math::Pose::IsPoseValid(GazeSpaceLoc))
+        {                                      
+            //newVRCFTPacket.eyeGazePoses[0]=GazeSpaceLoc.pose;
+            info.EyeGaze_Pose_Orientation.x = GazeSpaceLoc.pose.orientation.x;
+            info.EyeGaze_Pose_Orientation.y = GazeSpaceLoc.pose.orientation.y;
+            info.EyeGaze_Pose_Orientation.z = GazeSpaceLoc.pose.orientation.z;
+            info.EyeGaze_Pose_Orientation.w = GazeSpaceLoc.pose.orientation.w;
+            const OVR::Quatf rot = OVR::Quatf(
+                    info.EyeGaze_Pose_Orientation.x,
+                    info.EyeGaze_Pose_Orientation.y,
+                    info.EyeGaze_Pose_Orientation.z,
+                    info.EyeGaze_Pose_Orientation.w);
+            const OVR::Vector3f GazeDirection = rot.Rotate(OVR::Vector3f(0.0f,0.0f,-1.0f));
+            info.EyeGaze_Direction.x = GazeDirection.x;
+            info.EyeGaze_Direction.y = GazeDirection.y;
+            info.EyeGaze_Direction.z = GazeDirection.z;
+        }
+        else
+        {   //没有眼动数据时：
+            info.EyeGaze_Pose_Orientation = {0.0f,0.0f,0.0f,1.0f};
+            info.EyeGaze_Direction = {0.0f,0.0f,-1.0f};
+        }  
+  
 
 
         const auto lastPredicatedDisplayTime = m_lastPredicatedDisplayTime.load();
