@@ -30,7 +30,7 @@ This is a fork of [ALVR](https://github.com/polygraphene/ALVR).
     -   Minimum supported OS version is Windows 8.  
     -   NVIDIA GPU that supports NVENC ([Supported GPUs](https://github.com/polygraphene/ALVR/wiki/Supported-GPU)) (or with an AMD GPU that supports AMF VCE) with the latest driver.  
     -   Laptops with an onboard (Intel HD, AMD iGPU) and an additional dedicated GPU (NVidia GTX/RTX, AMD HD/R5/R7): you should assign the dedicated GPU or "high performance graphics adapter" to the applications ALVR, SteamVR for best performance and compatibility. (NVidia: Nvidia control panel->3d settings->application settings; AMD: similiar way) 
-
+该分支将会把眼动位姿数据传输给服务器，在渲染完成硬件编码前进行可视化。Testing！
 -   802.11ac 5Ghz wireless or ethernet wired connection  
     -   It is recommended to use 802.11ac 5Ghz for the headset and ethernet for PC  
     -   You need to connect both the PC and the headset to same router (or use a routed connection as described [here](https://github.com/alvr-org/ALVR/wiki/ALVR-client-and-server-on-separate-networks))
