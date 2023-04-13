@@ -310,7 +310,7 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
 		{
 		double angle_x=atan(-1.0*m_frameGazeDirection.v[0]/m_frameGazeDirection.v[2])*(180/3.14159265358979323846);
 		double angle_y=atan(-1.0*m_frameGazeDirection.v[1]/m_frameGazeDirection.v[2])*(180/3.14159265358979323846);	
-        TxtPrint(" Offset=%d New FrameIndex=%llu  HeadPosition=(%lf, %lf, %lf) HeadRotation=(%lf, %lf, %lf, %lf) \n   Angle(%lf °,%lf °) EyeGazeDirection=(%lf, %lf, %lf) \n"
+        TxtPrint(" Offset=%d New FrameIndex=%llu  HeadPosition=(%lf, %lf, %lf) HeadRotation=(%lf, %lf, %lf, %lf) \n  EyeGazeRotation=(%lf,%lf,%lf,%lf) Angle(%lf °,%lf °) EyeGazeDirection=(%lf, %lf, %lf) \n"
 		      , Settings::Instance().m_trackingFrameOffset
 		      , submitFrameIndex
 		      ,m_framePosePosition.v[0]
@@ -320,6 +320,10 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
 		      ,m_framePoseRotation.y
 		      ,m_framePoseRotation.z
 		      ,m_framePoseRotation.w
+			  ,m_frameGazeRotation.x
+			  ,m_frameGazeRotation.y
+			  ,m_frameGazeRotation.z
+			  ,m_frameGazeRotation.w
 		      ,angle_x
 		      ,angle_y
               ,m_frameGazeDirection.v[0]

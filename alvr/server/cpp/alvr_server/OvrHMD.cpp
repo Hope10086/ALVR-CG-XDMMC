@@ -29,7 +29,7 @@ vr::HmdRect2_t fov_to_projection(EyeFov fov) {
     proj_bounds.vBottomRight.v[0] = tanf(fov.right);
     proj_bounds.vTopLeft.v[1] = -tanf(fov.top);
     proj_bounds.vBottomRight.v[1] = -tanf(fov.bottom);
-
+    Info("fov.left=%f, fov.right=%f, fov.top=%f,fov.bottom=%f", fov.left, fov.right, fov.top, fov.bottom);    
     return proj_bounds;
 }
 
@@ -331,8 +331,7 @@ vr::DriverPose_t OvrHmd::GetPose() {
 
         // set prox sensor
         vr::VRDriverInput()->UpdateBooleanComponent(m_proximity, info.mounted == 1, 0.0);
-
-        Debug("GetPose: Rotation=(%f, %f, %f, %f) Position=(%f, %f, %f)\n",
+        Debug(" Send to steam VR::GetPose: Rotation=(%f, %f, %f, %f) Position=(%f, %f, %f)\n",
               pose.qRotation.x,
               pose.qRotation.y,
               pose.qRotation.z,
@@ -489,7 +488,7 @@ void OvrHmd::GetEyeOutputViewport(
     } else {
         *pnX = Settings::Instance().m_renderWidth / 2;
     }
-    Debug("GetEyeOutputViewport Eye=%d %dx%d %dx%d\n", eEye, *pnX, *pnY, *pnWidth, *pnHeight);
+    Info("GetEyeOutputViewport Eye=%d %dx%d %dx%d\n", eEye, *pnX, *pnY, *pnWidth, *pnHeight);
 }
 
 void OvrHmd::GetProjectionRaw(

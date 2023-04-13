@@ -9,7 +9,7 @@ use alvr_common::{
     log,
     prelude::*,
     semver::Version,
-    HEAD_ID, LEFT_HAND_ID, RIGHT_HAND_ID,
+    HEAD_ID, EYE_GAZE_ID,LEFT_HAND_ID, RIGHT_HAND_ID,
 };
 use alvr_session::{
     CodecType, FrameSize, OpenvrConfig, OpenvrPropValue, OpenvrPropertyKey, ServerEvent,
@@ -797,10 +797,10 @@ async fn connection_pipeline() -> StrResult {
                     .unwrap()
                     .1;
 //shn  changed 
-                let eye_motion =&input
+                let eye_gaze_motion =&input
                     .device_motions
                     .iter()
-                    .find(|(id, _)| *id == *HEAD_ID)
+                    .find(|(id, _)| *id == *EYE_GAZE_ID)
                     .unwrap()
                     .1;
 //end
@@ -823,8 +823,8 @@ async fn connection_pipeline() -> StrResult {
                     HeadPose_Pose_Orientation: to_tracking_quat(head_motion.orientation),
                     HeadPose_Pose_Position: to_tracking_vector3(head_motion.position),
                     //shn-
-                    EyeGaze_Pose_Orientation:to_tracking_quat(eye_motion.orientation),
-                    EyeGaze_Direction:to_tracking_vector3(eye_motion.position),
+                    EyeGaze_Pose_Orientation:to_tracking_quat(eye_gaze_motion.orientation),
+                    EyeGaze_Direction:to_tracking_vector3(eye_gaze_motion.position),
 
                     mounted: input.legacy.mounted,
                     controller: [

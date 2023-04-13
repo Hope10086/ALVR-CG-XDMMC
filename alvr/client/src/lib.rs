@@ -142,6 +142,8 @@ pub unsafe extern "system" fn Java_com_polygraphene_alvr_OvrActivity_onCreateNat
                             angular_velocity: None,
                         },
                     ),
+                    //shn 这里是openvr的客户端 不再理会
+
                     (
                         *LEFT_HAND_ID,
                         MotionData {

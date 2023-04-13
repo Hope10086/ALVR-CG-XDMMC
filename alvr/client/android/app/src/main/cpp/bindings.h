@@ -25,8 +25,9 @@ struct TrackingVector2 {
 struct TrackingInfo {
     unsigned long long targetTimestampNs;
     TrackingQuat HeadPose_Pose_Orientation;
-    TrackingVector3 HeadPose_Pose_Position;
-
+    TrackingVector3 HeadPose_Pose_Position;//hmd
+    TrackingQuat  EyeGaze_Pose_Orientation;
+    TrackingVector3  EyeGaze_Direction;
 
     unsigned char mounted;
 

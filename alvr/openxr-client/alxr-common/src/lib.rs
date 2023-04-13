@@ -4,7 +4,7 @@ mod connection_utils;
 #[cfg(target_os = "android")]
 mod audio;
 
-use alvr_common::{prelude::*, ALVR_VERSION, HEAD_ID, LEFT_HAND_ID, RIGHT_HAND_ID};
+use alvr_common::{prelude::*, ALVR_VERSION, HEAD_ID, EYE_GAZE_ID,LEFT_HAND_ID, RIGHT_HAND_ID};
 use alvr_session::Fov;
 use alvr_sockets::{
     BatteryPacket, HeadsetInfoPacket, Input, LegacyController, LegacyInput, MotionData,
@@ -313,7 +313,7 @@ pub fn shutdown() {
 pub unsafe extern "C" fn path_string_to_hash(path: *const ::std::os::raw::c_char) -> u64 {
     alvr_common::hash_string(CStr::from_ptr(path).to_str().unwrap())
 }
-
+//shn
 pub extern "C" fn input_send(data_ptr: *const TrackingInfo) {
     #[inline(always)]
     fn from_tracking_quat(quat: &TrackingQuat) -> Quat {
@@ -346,6 +346,17 @@ pub extern "C" fn input_send(data_ptr: *const TrackingInfo) {
                         angular_velocity: None,
                     },
                 ),
+                //shn
+                (
+                    *EYE_GAZE_ID,
+                    MotionData {
+                        orientation: from_tracking_quat(&data.EyeGaze_Pose_Orientation),
+                        position: from_tracking_vector3(&data.EyeGaze_Direction),
+                        linear_velocity: None,
+                        angular_velocity: None,
+                    },
+                ),
+                //end
                 (
                     *LEFT_HAND_ID,
                     MotionData {

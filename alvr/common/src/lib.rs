@@ -58,6 +58,9 @@ pub fn hash_string(string: &str) -> u64 {
 }
 
 pub const HEAD_PATH: &str = "/user/head";
+//shn
+pub const EYE_GAZE_PATH:  &str  = "/user/eye";
+//end
 pub const LEFT_HAND_PATH: &str = "/user/hand/left";
 pub const RIGHT_HAND_PATH: &str = "/user/hand/right";
 pub const LEFT_CONTROLLER_HAPTIC_PATH: &str = "/user/hand/left/output/haptic";
@@ -65,6 +68,9 @@ pub const RIGHT_CONTROLLER_HAPTIC_PATH: &str = "/user/hand/right/output/haptic";
 
 lazy_static! {
     pub static ref HEAD_ID: u64 = hash_string(HEAD_PATH);
+    //shn
+    pub static ref EYE_GAZE_ID:  u64 = hash_string(EYE_GAZE_PATH);
+    //end EYE_GAZE_ID
     pub static ref LEFT_HAND_ID: u64 = hash_string(LEFT_HAND_PATH);
     pub static ref RIGHT_HAND_ID: u64 = hash_string(RIGHT_HAND_PATH);
     pub static ref LEFT_CONTROLLER_HAPTIC_ID: u64 = hash_string(LEFT_CONTROLLER_HAPTIC_PATH);
