@@ -173,6 +173,7 @@ void Settings::Load()
 		Info("Serial Number: %hs\n", mSerialNumber.c_str());
 		Info("Model Number: %hs\n", mModelNumber.c_str());
 		Info("Render Target: %d %d\n", m_renderWidth, m_renderHeight);
+		Info("Recommended Target Width: %d %d\n", m_recommendedTargetWidth, m_recommendedTargetHeight);
 		Info("Seconds from Vsync to Photons: %f\n", m_flSecondsFromVsyncToPhotons);
 		Info("Refresh Rate: %d\n", m_refreshRate);
 		m_loaded = true;

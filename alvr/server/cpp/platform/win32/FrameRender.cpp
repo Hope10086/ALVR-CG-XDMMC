@@ -318,7 +318,7 @@ bool FrameRender::Startup()
 }
 
 
-bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBounds_t bounds[][2], int layerCount, bool recentering, const std::string &message, const std::string& debugText)
+bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBounds_t bounds[][2], vr::HmdVector3_t frameGazeDirection,int layerCount, bool recentering, const std::string &message, const std::string& debugText)
 {
 	// Set render target
 	m_pD3DRender->GetContext()->OMSetRenderTargets(1, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get());
@@ -332,7 +332,7 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	m_pD3DRender->GetContext()->RSSetViewports(1, &viewport);
-    Info("Viewport Width X Height=(%X%f)\n",viewport.Width,viewport.Height);
+    //Info("Viewport Width X Height=(%f x %f)\n",viewport.Width,viewport.Height);
 	// Clear the back buffer
 	m_pD3DRender->GetContext()->ClearRenderTargetView(m_pRenderTargetView.Get(), DirectX::Colors::MidnightBlue);
 
@@ -368,9 +368,45 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 		D3D11_TEXTURE2D_DESC srcDesc;
 		textures[0]->GetDesc(&srcDesc);
 
-		Info("RenderFrame layer=%d/%d %dx%d %d%s%s\n", i, layerCount, srcDesc.Width, srcDesc.Height, srcDesc.Format
-			, recentering ? L" (recentering)" : L"", !message.empty() ? L" (message)" : L"");
 
+		//Info("RenderFrame layer=%d/%d %dx%d %d%s%s\n", i, layerCount, srcDesc.Width, srcDesc.Height, srcDesc.Format
+		//	, recentering ? L" (recentering)" : L"", !message.empty() ? L" (message)" : L"");
+		if (true)
+		{
+		//根据眼动数据计算Center_x,Center_y	
+
+
+        UINT Center_X = srcDesc.Width/2, Center_Y = srcDesc.Height/2; //后续修改
+	    UINT W = srcDesc.Width/16, H = srcDesc.Height/16; 
+		//超出边界重置可视化区域的尺寸
+        if (Center_X + W >srcDesc.Width)
+        W = srcDesc.Width -Center_X;
+        if (Center_Y + H >srcDesc.Height)
+	    H = srcDesc.Height -Center_Y;
+        const UINT DstX = Center_X-W/2;
+	    const UINT DstY = Center_Y-H/2;
+        D3D11_BOX sourceRegion;
+	    sourceRegion.left  = Center_X;
+	    sourceRegion.right = Center_X+ W;
+	    sourceRegion.top   = Center_Y;
+	    sourceRegion.bottom = Center_Y+ H;
+	    sourceRegion.front = 0;
+	    sourceRegion.back  = 1;
+			
+          //如果分辨率所发生了改变则需要重新创建纹理
+          if ( (m_GazepointWidth != srcDesc.Width) || (m_GazepointHeight != srcDesc.Height) )
+		  {
+			CreateGazepointTexture(srcDesc);//创建/更新 可视化区域
+			m_pD3DRender->GetContext()->CopySubresourceRegion(textures[0],0,DstX,DstY,0,GazepointTexture.Get(),0,&sourceRegion);
+            m_pD3DRender->GetContext()->CopySubresourceRegion(textures[1],0,DstX,DstY,0,GazepointTexture.Get(),0,&sourceRegion);
+		  }		  
+           else
+		  {
+			m_pD3DRender->GetContext()->CopySubresourceRegion(textures[0],0,DstX,DstY,0,GazepointTexture.Get(),0,&sourceRegion);
+            m_pD3DRender->GetContext()->CopySubresourceRegion(textures[1],0,DstX,DstY,0,GazepointTexture.Get(),0,&sourceRegion);
+		  }
+		}
+		
 		D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
 		SRVDesc.Format = srcDesc.Format;
 		SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -476,6 +512,50 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 	m_pD3DRender->GetContext()->Flush();
 
 	return true;
+}
+
+void FrameRender::CreateGazepointTexture(D3D11_TEXTURE2D_DESC m_srcDesc)
+{
+        m_GazepointWidth = m_srcDesc.Width;
+	    m_GazepointHeight = m_srcDesc.Height;
+	    D3D11_TEXTURE2D_DESC gazeDesc;
+	    gazeDesc.Width = m_srcDesc.Width;
+	    gazeDesc.Height = m_srcDesc.Height;	
+	    gazeDesc.Format = m_srcDesc.Format;
+	    gazeDesc.Usage = D3D11_USAGE_DEFAULT;
+	    gazeDesc.MipLevels = 1;
+	    gazeDesc.ArraySize = 1;
+	    gazeDesc.SampleDesc.Count = 1;
+	    gazeDesc.CPUAccessFlags = 0;
+	    gazeDesc.MiscFlags = 0;
+	    gazeDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;//绑定为常量缓冲区，可以与任何其他绑定标志组合
+        //初始化纹理数据 
+	    const UINT pixelSize = 4; // 
+        const UINT rowPitch = gazeDesc.Width* pixelSize;
+        const UINT textureSize = rowPitch * gazeDesc.Height;
+        std::vector<float> pixels(textureSize / sizeof(float));
+        for (UINT y = 0; y < gazeDesc.Height; ++y)
+        {
+          for (UINT x = 0; x < gazeDesc.Width; ++x)
+          {
+            UINT pixelIndex = y * rowPitch / sizeof(float) + x * pixelSize / sizeof(float);
+            pixels[pixelIndex + 0] = 0.0f; // 红色通道
+            pixels[pixelIndex + 1] = 0.0f; // 绿色通道
+            pixels[pixelIndex + 2] = 1.0f; // 蓝色通道
+            pixels[pixelIndex + 3] = 0.5f; // 透明度通道
+          }
+        }
+		D3D11_SUBRESOURCE_DATA initData = {};
+        initData.pSysMem = pixels.data();
+        initData.SysMemPitch = rowPitch;
+        initData.SysMemSlicePitch = textureSize;
+		//创建2D纹理对象
+	    HRESULT hr = m_pD3DRender->GetDevice()->CreateTexture2D(&gazeDesc,&initData,&GazepointTexture);
+		if (FAILED(hr))
+		{
+			Info("CreateTexture2D failed :GazepointTexture hr = %x\n", hr);
+		}
+		
 }
 
 ComPtr<ID3D11Texture2D> FrameRender::GetTexture()

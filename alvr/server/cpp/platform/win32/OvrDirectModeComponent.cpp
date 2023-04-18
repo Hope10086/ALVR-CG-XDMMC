@@ -332,7 +332,7 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
 		);
 		}
 		// Copy entire texture to staging so we can read the pixels to send to remote device.
-		m_pEncoder->CopyToStaging(pTexture, bounds, layerCount,false, presentationTime, submitFrameIndex,"", debugText);
+		m_pEncoder->CopyToStaging(pTexture, bounds,m_frameGazeDirection,layerCount,false, presentationTime, submitFrameIndex,"", debugText);
 
 		m_pD3DRender->GetContext()->Flush();
 	}

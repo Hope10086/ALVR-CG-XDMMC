@@ -29,7 +29,10 @@ vr::HmdRect2_t fov_to_projection(EyeFov fov) {
     proj_bounds.vBottomRight.v[0] = tanf(fov.right);
     proj_bounds.vTopLeft.v[1] = -tanf(fov.top);
     proj_bounds.vBottomRight.v[1] = -tanf(fov.bottom);
-    Info("fov.left=%f, fov.right=%f, fov.top=%f,fov.bottom=%f", fov.left, fov.right, fov.top, fov.bottom);    
+    //Info("fov.left=%f, fov.right=%f, fov.top=%f,fov.bottom=%f", fov.left, fov.right, fov.top, fov.bottom);    
+    //边界点 左上顶点 和右下顶点
+    Info("LeftBounds: (%f,%f) RightBounds: (%f,%f)",proj_bounds.vTopLeft.v[0],proj_bounds.vBottomRight.v[0],proj_bounds.vTopLeft.v[1] ,proj_bounds.vBottomRight.v[1]);
+
     return proj_bounds;
 }
 
@@ -420,14 +423,17 @@ void OvrHmd::SetViewsConfig(ViewsConfigData config) {
     this->views_config = config;
 
     auto left_transform = MATRIX_IDENTITY;
+    //shn
     left_transform.m[0][3] = -config.ipd_m / 2.0;
     auto right_transform = MATRIX_IDENTITY;
     right_transform.m[0][3] = config.ipd_m / 2.0;
+    Info("interpupillary distance(ipd)= %f", config.ipd_m);
     vr::VRServerDriverHost()->SetDisplayEyeToHead(object_id, left_transform, right_transform);
-
-    auto left_proj = fov_to_projection(config.fov[0]);
+//shn
+    auto left_proj  = fov_to_projection(config.fov[0]);
     auto right_proj = fov_to_projection(config.fov[1]);
-
+    Info("Left fov =  (%f,%f,%f,%f)", config.fov[0].left,config.fov[0].right,config.fov[0].top,config.fov[0].bottom);
+    Info("Right fov = (%f,%f,%f,%f)", config.fov[1].left,config.fov[1].right,config.fov[1].top,config.fov[1].bottom);
     vr::VRServerDriverHost()->SetDisplayProjectionRaw(object_id, left_proj, right_proj);
 
     // todo: check if this is still needed

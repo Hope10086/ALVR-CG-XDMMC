@@ -63,14 +63,14 @@
 #endif
 		}
 
-		bool CEncoder::CopyToStaging(ID3D11Texture2D *pTexture[][2], vr::VRTextureBounds_t bounds[][2], int layerCount, bool recentering
+		bool CEncoder::CopyToStaging(ID3D11Texture2D *pTexture[][2], vr::VRTextureBounds_t bounds[][2], vr::HmdVector3_t frameGazeDirection,int layerCount, bool recentering
 			, uint64_t presentationTime, uint64_t targetTimestampNs, const std::string& message, const std::string& debugText)
 		{
 			m_presentationTime = presentationTime;
 			m_targetTimestampNs = targetTimestampNs;
 			m_FrameRender->Startup();
 
-			m_FrameRender->RenderFrame(pTexture, bounds, layerCount, recentering, message, debugText);
+			m_FrameRender->RenderFrame(pTexture, bounds,frameGazeDirection, layerCount, recentering, message, debugText);
 			return true;
 		}
 
