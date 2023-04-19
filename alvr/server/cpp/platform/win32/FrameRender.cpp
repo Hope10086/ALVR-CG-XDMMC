@@ -374,36 +374,63 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 		if (true)
 		{
 		//根据眼动数据计算Center_x,Center_y	
+		struct GazePoint
+		{  UINT x;
+		   UINT y;	
+		} GazePoint[2];
+          UINT Zx = srcDesc.Width /(tanf(0.942478)+tanf(0.698132));
+	      UINT Zy = srcDesc.Height/(tanf(0.733038)+tanf(0.942478)); 
+	   //应该是一个Z但是目前所有的尺寸算出来的都差一些
+          double angle_x = atanf(-1.0*frameGazeDirection.v[0]/frameGazeDirection.v[2]);
+	      double angle_y = atanf(1.0*frameGazeDirection.v[1]/frameGazeDirection.v[2]);
+          GazePoint[0].y = GazePoint[1].y = Zy*(tanf(0.733038)+tanf(angle_y));
+	      GazePoint[0].x = Zx*(tanf(0.942478)+tanf(angle_x));
+	      GazePoint[1].x = Zx*(tanf(0.698132)+tanf(angle_y));
+        //UINT Center_X = srcDesc.Width/2, Center_Y = srcDesc.Height/2; 
+	   // UINT W = srcDesc.Width/16, H = srcDesc.Height/16; 
+		struct visualformat
+		{
+			UINT width ;
+			UINT height;
+		}  vformat[2];
+		vformat[0].width  = vformat[1].width  = srcDesc.Width/16;
+		vformat[0].height = vformat[1].height = srcDesc.Height/16;
+		//超出边界重置可视化区域的尺寸,GazePoint是中心 所以 加1/2的宽高和边界比较
+        if (GazePoint[0].x + vformat[0].width/2 >srcDesc.Width)
+        vformat[0].width  = 2*(srcDesc.Width  - GazePoint[0].x);
+        if (GazePoint[0].y +vformat[0].height/2 >srcDesc.Height)
+	    vformat[0].height = 2*(srcDesc.Height - GazePoint[0].y); //Left
+
+		if (GazePoint[1].x + vformat[1].width/2 >srcDesc.Width)
+        vformat[1].width  = 2*(srcDesc.Width  - GazePoint[1].x);
+        if (GazePoint[1].y +vformat[1].height/2 >srcDesc.Height)
+	    vformat[1].height = 2*(srcDesc.Height - GazePoint[1].y); //right	
 
 
-        UINT Center_X = srcDesc.Width/2, Center_Y = srcDesc.Height/2; //后续修改
-	    UINT W = srcDesc.Width/16, H = srcDesc.Height/16; 
-		//超出边界重置可视化区域的尺寸
-        if (Center_X + W >srcDesc.Width)
-        W = srcDesc.Width -Center_X;
-        if (Center_Y + H >srcDesc.Height)
-	    H = srcDesc.Height -Center_Y;
-        const UINT DstX = Center_X-W/2;
-	    const UINT DstY = Center_Y-H/2;
-        D3D11_BOX sourceRegion;
-	    sourceRegion.left  = Center_X;
-	    sourceRegion.right = Center_X+ W;
-	    sourceRegion.top   = Center_Y;
-	    sourceRegion.bottom = Center_Y+ H;
-	    sourceRegion.front = 0;
-	    sourceRegion.back  = 1;
+
+
+
+        D3D11_BOX srcRegion[2];
+		srcRegion[0].front  =  srcRegion[1].front = 0;
+	    srcRegion[0].back   =  srcRegion[1].back  = 1;
+	    srcRegion[0].left   =  srcRegion[1].left  = 0;
+        srcRegion[0].top    =  srcRegion[1].top   = 0;
+	    srcRegion[0].right  =  vformat[0].width;
+		srcRegion[1].right  =  vformat[1].width;
+	    srcRegion[0].bottom =  vformat[0].height;
+		srcRegion[1].left   =  vformat[1].height;
 			
           //如果分辨率所发生了改变则需要重新创建纹理
           if ( (m_GazepointWidth != srcDesc.Width) || (m_GazepointHeight != srcDesc.Height) )
 		  {
 			CreateGazepointTexture(srcDesc);//创建/更新 可视化区域
-			m_pD3DRender->GetContext()->CopySubresourceRegion(textures[0],0,DstX,DstY,0,GazepointTexture.Get(),0,&sourceRegion);
-            m_pD3DRender->GetContext()->CopySubresourceRegion(textures[1],0,DstX,DstY,0,GazepointTexture.Get(),0,&sourceRegion);
+			m_pD3DRender->GetContext()->CopySubresourceRegion(textures[0],0,GazePoint[0].x-vformat[0].width/2,GazePoint[0].y-vformat[0].height/2,0,GazepointTexture.Get(),0,&srcRegion[0]);
+            m_pD3DRender->GetContext()->CopySubresourceRegion(textures[1],0,GazePoint[1].y-vformat[1].width/2,GazePoint[1].y-vformat[1].height/2,0,GazepointTexture.Get(),0,&srcRegion[1]);
 		  }		  
            else
 		  {
-			m_pD3DRender->GetContext()->CopySubresourceRegion(textures[0],0,DstX,DstY,0,GazepointTexture.Get(),0,&sourceRegion);
-            m_pD3DRender->GetContext()->CopySubresourceRegion(textures[1],0,DstX,DstY,0,GazepointTexture.Get(),0,&sourceRegion);
+			m_pD3DRender->GetContext()->CopySubresourceRegion(textures[0],0,GazePoint[0].x-vformat[1].width/2,GazePoint[0].y-vformat[0].height/2,0,GazepointTexture.Get(),0,&srcRegion[0]);
+            m_pD3DRender->GetContext()->CopySubresourceRegion(textures[1],0,GazePoint[1].y-vformat[1].width/2,GazePoint[1].y-vformat[1].height/2,0,GazepointTexture.Get(),0,&srcRegion[1]);
 		  }
 		}
 		
@@ -519,8 +546,8 @@ void FrameRender::CreateGazepointTexture(D3D11_TEXTURE2D_DESC m_srcDesc)
         m_GazepointWidth = m_srcDesc.Width;
 	    m_GazepointHeight = m_srcDesc.Height;
 	    D3D11_TEXTURE2D_DESC gazeDesc;
-	    gazeDesc.Width = m_srcDesc.Width;
-	    gazeDesc.Height = m_srcDesc.Height;	
+	    gazeDesc.Width = m_srcDesc.Width/16;
+	    gazeDesc.Height = m_srcDesc.Height/16;	
 	    gazeDesc.Format = m_srcDesc.Format;
 	    gazeDesc.Usage = D3D11_USAGE_DEFAULT;
 	    gazeDesc.MipLevels = 1;
