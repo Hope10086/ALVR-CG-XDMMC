@@ -385,7 +385,7 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 	      double angle_y = atanf(1.0*frameGazeDirection.v[1]/frameGazeDirection.v[2]);
           GazePoint[0].y = GazePoint[1].y = Zy*(tanf(0.733038)+tanf(angle_y));
 	      GazePoint[0].x = Zx*(tanf(0.942478)+tanf(angle_x));
-	      GazePoint[1].x = Zx*(tanf(0.698132)+tanf(angle_y));
+	      GazePoint[1].x = Zx*(tanf(0.698132)+tanf(angle_x));
         //UINT Center_X = srcDesc.Width/2, Center_Y = srcDesc.Height/2; 
 	   // UINT W = srcDesc.Width/16, H = srcDesc.Height/16; 
 		struct visualformat
