@@ -2498,6 +2498,7 @@ struct OpenXrProgram final : IOpenXrProgram {
             .next = nullptr
         };
         uint32_t viewCountOutput = 0;
+        //shn locateview
         const XrResult res = xrLocateViews(m_session, &viewLocateInfo, &viewState, viewCapacityInput, &viewCountOutput, views);
         if (XR_FAILED(res))
           return false;

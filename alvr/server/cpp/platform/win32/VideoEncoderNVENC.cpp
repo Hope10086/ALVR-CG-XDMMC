@@ -112,7 +112,12 @@ void VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture, uint64_t presentatio
 
 	ID3D11Texture2D *pInputTexture = reinterpret_cast<ID3D11Texture2D*>(encoderInputFrame->inputPtr);
 	m_pD3DRender->GetContext()->CopyResource(pInputTexture, pTexture);
+    D3D11_TEXTURE2D_DESC inputDesc;
+	pTexture->GetDesc(&inputDesc);
+	Info("before videoencode: %dx%d",inputDesc.Width, inputDesc.Height);
 
+
+//  log pTexture.width * pTexture.height
 	NV_ENC_PIC_PARAMS picParams = {};
 	if (insertIDR) {
 		Debug("Inserting IDR frame.\n");
