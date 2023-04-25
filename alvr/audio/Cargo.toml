@@ -24,7 +24,7 @@ cpal = { version = "0.13.5", features = ["jack"] }
 cpal = "0.13.5"
 
 [target.'cfg(windows)'.dependencies]
-widestring = "0.5"
+widestring = "1.0"
 winapi = { version = "0.3", features = [
     "impl-default",
     "combaseapi",
