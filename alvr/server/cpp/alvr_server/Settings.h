@@ -100,6 +100,14 @@ public:
 	double m_leftControllerPositionOffset[3];
 	double m_leftControllerRotationOffset[3];
 
+	//shn add 
+	float shn_ipd ;
+	EyeFov shn_fov[2];
+	//shn_fov[0] = {-0.942478,0.698132,0.942478,-0.733038};
+	//shn_fov[1] = {-0.698132,0.942478,0.942478,-0.733038};
+	bool m_datatest = false;
+	
+
 	float m_hapticsIntensity;
 	float m_hapticsAmplitudeCurve;
 	float m_hapticsMinDuration;

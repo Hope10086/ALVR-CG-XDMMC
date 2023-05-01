@@ -90,7 +90,8 @@ void Settings::Load()
 		//shn 自适应比特
 		
 		m_enableAdaptiveBitrate = config.get("enable_adaptive_bitrate").get<bool>();
-		m_captureLayerDDSTrigger = config.get("enable_adaptive_bitrate").get<bool>();
+		m_captureLayerDDSTrigger = config.get("enable_adaptive_bitrate").get<bool>();//shn
+		m_datatest = config.get("enable_adaptive_bitrate").get<bool>();//shn
 		m_adaptiveBitrateMaximum = (int)config.get("bitrate_maximum").get<int64_t>();
 		m_adaptiveBitrateTarget = (int)config.get("latency_target").get<int64_t>();
 		m_adaptiveBitrateUseFrametime = config.get("latency_use_frametime").get<bool>();
@@ -129,16 +130,82 @@ void Settings::Load()
 		m_serversidePrediction = config.get("serverside_prediction").get<bool>();
 		m_linearVelocityCutoff = (float)config.get("linear_velocity_cutoff").get<double>();
 		m_angularVelocityCutoff = (float)config.get("angular_velocity_cutoff").get<double>();
-
+//shn  将控制器（手柄）的偏移值修正设为定值， 外部接口用于设置 ipd 和fov
+// 原始运行时的
+//16:34:38.234473800 [INFO] Controller Position Offset (-0.006500,0.002000,-0.051000)
+//16:34:38.234495200 [INFO] Controller Rotation Offset (40.000000,0.000000,0.000000)]
+        
 		auto leftControllerPositionOffset = config.get("position_offset_left").get<picojson::array>();
+		if (m_datatest)
+		{
+		m_leftControllerPositionOffset[0] = -0.006500;
+		m_leftControllerPositionOffset[1] =  0.002000;
+		m_leftControllerPositionOffset[2] = -0.051000;	
+		// controller position offset  x 用来输入瞳距 
+		shn_ipd = leftControllerPositionOffset[0].get<double>();
+		Info("shn_ipd: %f\n",shn_ipd);
+		
+		shn_fov[0].left  = leftControllerPositionOffset[1].get<double>();
+		shn_fov[0].right = leftControllerPositionOffset[2].get<double>();
+
+		/*shn_fov[0].left = -0.698132;
+		shn_fov[0].right = 0.698132;
+		*/
+		/*shn_fov[0].left   = leftControllerPositionOffset[1].get<double>();
+		shn_fov[0].right  = -shn_fov[0].left ;
+		shn_fov[0].top    =   leftControllerPositionOffset[2].get<double>();
+		shn_fov[0].bottom = -shn_fov[0].top;
+		*/
+
+		}
+		else
+		{
 		m_leftControllerPositionOffset[0] = leftControllerPositionOffset[0].get<double>();
 		m_leftControllerPositionOffset[1] = leftControllerPositionOffset[1].get<double>();
 		m_leftControllerPositionOffset[2] = leftControllerPositionOffset[2].get<double>();
+		}
+		
+
+		//Info("Controller Position Offset (%lf,%lf,%lf)",m_leftControllerPositionOffset[0]
+		//,m_leftControllerPositionOffset[1]
+		//,m_leftControllerPositionOffset[2]);
 
 		auto leftControllerRotationOffset = config.get("rotation_offset_left").get<picojson::array>();
+		if (m_datatest)
+		{
+		m_leftControllerRotationOffset[0] = 40.000000;
+		m_leftControllerRotationOffset[1] = 0.000000;
+		m_leftControllerRotationOffset[2] = 0.000000;
+		
+		shn_fov[0].top    = leftControllerRotationOffset[1].get<double>();
+		shn_fov[0].bottom = leftControllerRotationOffset[2].get<double>();
+		/*shn_fov[0].top = 0.733038;
+		  shn_fov[0].bottom = -0.733038;
+		*/
+	
+		/*shn_fov[1].left  =  leftControllerRotationOffset[1].get<double>();
+		shn_fov[1].right =  -shn_fov[1].left;
+		shn_fov[1].top =  leftControllerRotationOffset[2].get<double>();
+		shn_fov[1].bottom = -shn_fov[1].top ;
+		*/
+
+		//右眼的fov数据
+		 
+		shn_fov[1].left   = -1.00*shn_fov[0].right;
+		shn_fov[1].right  = -1.00*shn_fov[0].left;
+		shn_fov[1].top    = 1.00*shn_fov[0].top;
+		shn_fov[1].bottom = 1.00*shn_fov[0].bottom;
+		}
+		else
+		{
 		m_leftControllerRotationOffset[0] = leftControllerRotationOffset[0].get<double>();
 		m_leftControllerRotationOffset[1] = leftControllerRotationOffset[1].get<double>();
 		m_leftControllerRotationOffset[2] = leftControllerRotationOffset[2].get<double>();
+		}
+
+		//Info("Controller Rotation Offset (%lf,%lf,%lf)",m_leftControllerRotationOffset[0]
+		//,m_leftControllerRotationOffset[1]
+		//,m_leftControllerRotationOffset[2]);
 
 		m_hapticsIntensity = config.get("haptics_intensity").get<double>();
 		m_hapticsAmplitudeCurve = config.get("haptics_amplitude_curve").get<double>();

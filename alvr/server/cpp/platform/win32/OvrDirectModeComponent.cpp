@@ -121,6 +121,10 @@ void OvrDirectModeComponent::SubmitLayer(const SubmitLayerPerEye_t(&perEye)[2])
 		, pPose->m[1][0], pPose->m[1][1], pPose->m[1][2], pPose->m[1][3]
 		, pPose->m[2][0], pPose->m[2][1], pPose->m[2][2], pPose->m[2][3]
 	);
+	Info("SubmitLayer Handles=%p,%p DepthHandles=%p,%p\n"
+	, perEye[0].hTexture, perEye[1].hTexture
+	, perEye[0].hDepthTexture, perEye[1].hDepthTexture);
+
 	// pPose is qRotation which is calculated by SteamVR using vr::DriverPose_t::qRotation.
 	// pPose->m[0][0], pPose->m[0][1], pPose->m[0][2],
 	// pPose->m[1][0], pPose->m[1][1], pPose->m[1][2], 

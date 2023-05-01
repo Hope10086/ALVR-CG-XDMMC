@@ -8,6 +8,9 @@
 #include "alvr_server/Settings.h"
 #include "alvr_server/Utils.h"
 
+#include "ScreenGrab11.h"
+UINT DDSSaveCount = 1;
+
 VideoEncoderNVENC::VideoEncoderNVENC(std::shared_ptr<CD3DRender> pD3DRender
 	, std::shared_ptr<ClientConnection> listener
 	, int width, int height)
@@ -111,13 +114,42 @@ void VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture, uint64_t presentatio
 	const NvEncInputFrame* encoderInputFrame = m_NvNecoder->GetNextInputFrame();
 
 	ID3D11Texture2D *pInputTexture = reinterpret_cast<ID3D11Texture2D*>(encoderInputFrame->inputPtr);
-	m_pD3DRender->GetContext()->CopyResource(pInputTexture, pTexture);
-    D3D11_TEXTURE2D_DESC inputDesc;
+//  log pTexture.width * pTexture.height	
+	D3D11_TEXTURE2D_DESC inputDesc;
 	pTexture->GetDesc(&inputDesc);
 	Info("before videoencode: %dx%d",inputDesc.Width, inputDesc.Height);
 
-
-//  log pTexture.width * pTexture.height
+	m_pD3DRender->GetContext()->CopyResource(pInputTexture, pTexture);
+        
+// dds 写入
+   DDSSaveCount++;
+   if ( Settings::Instance().m_datatest && DDSSaveCount%200 == 0)
+   {	
+    wchar_t buf[1024];
+	_snwprintf_s(buf, sizeof(buf), L"D:\\AX\\Logs\\ScreenDDS\\%d x %d -%llu.dds", inputDesc.Width,inputDesc.Height,targetTimestampNs);
+    /*fov&ipd test版本的需要在命名时附上ipd fov信息 所以进行修改 
+	int angle_left = (Settings::Instance().shn_fov[0].left)*(1800/3.14159265358979323846);
+	int angle_right = (Settings::Instance().shn_fov[0].right)*(1800/3.14159265358979323846);
+	int angle_top = (Settings::Instance().shn_fov[0].top)*(1800/3.14159265358979323846);
+	int angle_bottom = (Settings::Instance().shn_fov[0].bottom)*(1800/3.14159265358979323846);
+	float ipd = Settings::Instance().shn_ipd;
+	_snwprintf_s(buf, sizeof(buf), L"D:\\AX\\Logs\\ScreenDDS\\%d-ipd%f-fov%f %f %f %f.dds"
+	, DDSSaveCount/200
+	,ipd
+	,angle_left
+	,angle_right
+	,angle_top
+	,angle_bottom
+	);*/
+	//float angle_left = (Settings::Instance().shn_fov[0].left)*(180/3.14159265358979323846);
+	//float angle_right = (Settings::Instance().shn_fov[0].right)*(180/3.14159265358979323846);
+   // _snwprintf_s(buf, sizeof(buf), L"D:\\AX\\Logs\\ScreenDDS\\%d-%f-%f.dds", DDSSaveCount/200,angle_left,angle_right);
+	_snwprintf_s(buf, sizeof(buf), L"D:\\AX\\Logs\\ScreenDDS\\%d x %d -%llu.dds", inputDesc.Width,inputDesc.Height,targetTimestampNs);
+	HRESULT hr = DirectX::SaveDDSTextureToFile(m_pD3DRender->GetContext(), pInputTexture, buf);
+    if(FAILED (hr))
+    Info("Failed to save DDS texture  %llu to file",targetTimestampNs);
+   }
+    
 	NV_ENC_PIC_PARAMS picParams = {};
 	if (insertIDR) {
 		Debug("Inserting IDR frame.\n");

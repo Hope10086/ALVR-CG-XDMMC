@@ -75,10 +75,11 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_recenterResourceView;
 	ComPtr<ID3D11Resource> m_messageBGTexture;
 	ComPtr<ID3D11ShaderResourceView> m_messageBGResourceView;
-
+//shn
 	void CreateGazepointTexture(D3D11_TEXTURE2D_DESC m_srcDesc);
 	ComPtr<ID3D11Texture2D> GazepointTexture;
 	UINT m_GazepointWidth,m_GazepointHeight;
+	int logcount = 1;
 
 	struct SimpleVertex
 	{

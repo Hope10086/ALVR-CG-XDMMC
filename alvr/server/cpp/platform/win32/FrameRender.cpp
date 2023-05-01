@@ -332,7 +332,8 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	m_pD3DRender->GetContext()->RSSetViewports(1, &viewport);
-    //Info("Viewport Width X Height=(%f x %f)\n",viewport.Width,viewport.Height);
+	if(logcount % 200 == 0)
+    Info("Viewport Width X Height=(%f x %f) \n",viewport.Width,viewport.Height);
 	// Clear the back buffer
 	m_pD3DRender->GetContext()->ClearRenderTargetView(m_pRenderTargetView.Get(), DirectX::Colors::MidnightBlue);
 
@@ -371,10 +372,10 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
 
 		//Info("RenderFrame layer=%d/%d %dx%d %d%s%s\n", i, layerCount, srcDesc.Width, srcDesc.Height, srcDesc.Format
 		//	, recentering ? L" (recentering)" : L"", !message.empty() ? L" (message)" : L"");
-		Info(" texture[0/1]:%dx%d  \n", srcDesc.Width, srcDesc.Height);
+		Info("RenderFrame layer=%d/%d:  %dx%d  \n", i, layerCount,srcDesc.Width, srcDesc.Height);
 
 
-		if (true)
+		if (false)
 		{
 		//根据眼动数据计算Center_x,Center_y	
 		struct GazePoint
@@ -389,20 +390,20 @@ bool FrameRender::RenderFrame(ID3D11Texture2D *pTexture[][2], vr::VRTextureBound
           GazePoint[0].y = GazePoint[1].y = Zy*(tanf(0.733038)+tanf(angle_y));
 	      GazePoint[0].x = Zx*(tanf(0.942478)+tanf(angle_x));
 	      GazePoint[1].x = Zx*(tanf(0.698132)+tanf(angle_x));
-        UINT Center_X = srcDesc.Width/2, Center_Y = srcDesc.Height/2; 
-	    UINT W = srcDesc.Width/16, H = srcDesc.Height/16; 
+        UINT Center_X = GazePoint[0].x, Center_Y = GazePoint[0].y; 
+	    UINT W = srcDesc.Width/32, H = srcDesc.Height/32; 
 
-        if (Center_X + W >srcDesc.Width)
-        W = srcDesc.Width -Center_X;
-        if (Center_Y + H >srcDesc.Height)
-	    H = srcDesc.Height -Center_Y;
+        //if (Center_X + W >srcDesc.Width)
+       // W = srcDesc.Width -Center_X;
+       // if (Center_Y + H >srcDesc.Height)
+	   // H = srcDesc.Height -Center_Y;
         //const UINT DstX = Center_X-W/2;
 	   // const UINT DstY = Center_Y-H/2;
         D3D11_BOX sourceRegion;
-	    sourceRegion.left  = Center_X;
-	    sourceRegion.right = Center_X+ W;
-	    sourceRegion.top   = Center_Y;
-	    sourceRegion.bottom = Center_Y+ H;
+	    sourceRegion.left  = 0;
+	    sourceRegion.right = W;
+	    sourceRegion.top   = 0;
+	    sourceRegion.bottom =H;
 	    sourceRegion.front = 0;
 	    sourceRegion.back  = 1;
 	    
@@ -564,8 +565,8 @@ void FrameRender::CreateGazepointTexture(D3D11_TEXTURE2D_DESC m_srcDesc)
         m_GazepointWidth = m_srcDesc.Width;
 	    m_GazepointHeight = m_srcDesc.Height;
 	    D3D11_TEXTURE2D_DESC gazeDesc;
-	    gazeDesc.Width = m_srcDesc.Width;
-	    gazeDesc.Height = m_srcDesc.Height;	
+	    gazeDesc.Width = m_srcDesc.Width/16;
+	    gazeDesc.Height = m_srcDesc.Height/16;	
 	    gazeDesc.Format = m_srcDesc.Format;
 	    gazeDesc.Usage = D3D11_USAGE_DEFAULT;
 	    gazeDesc.MipLevels = 1;
@@ -604,7 +605,8 @@ void FrameRender::CreateGazepointTexture(D3D11_TEXTURE2D_DESC m_srcDesc)
 }
 
 ComPtr<ID3D11Texture2D> FrameRender::GetTexture()
-{
+{   
+	logcount ++;
 	return m_pStagingTexture;
 }
 

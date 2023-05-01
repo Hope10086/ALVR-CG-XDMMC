@@ -1,5 +1,4 @@
 #include "OvrHMD.h"
-
 #include "ClientConnection.h"
 #include "Logger.h"
 #include "OvrController.h"
@@ -31,7 +30,7 @@ vr::HmdRect2_t fov_to_projection(EyeFov fov) {
     proj_bounds.vBottomRight.v[1] = -tanf(fov.bottom);
     //Info("fov.left=%f, fov.right=%f, fov.top=%f,fov.bottom=%f", fov.left, fov.right, fov.top, fov.bottom);    
     //边界点 左上顶点 和右下顶点
-    Info("LeftBounds: (%f,%f) RightBounds: (%f,%f)",proj_bounds.vTopLeft.v[0],proj_bounds.vBottomRight.v[0],proj_bounds.vTopLeft.v[1] ,proj_bounds.vBottomRight.v[1]);
+    //Info("LeftBounds: (%f,%f) RightBounds: (%f,%f)",proj_bounds.vTopLeft.v[0],proj_bounds.vBottomRight.v[0],proj_bounds.vTopLeft.v[1] ,proj_bounds.vBottomRight.v[1]);
 
     return proj_bounds;
 }
@@ -322,7 +321,19 @@ vr::DriverPose_t OvrHmd::GetPose() {
 
     if (m_TrackingInfo.targetTimestampNs > 0) {
         TrackingInfo &info = m_TrackingInfo;
-
+    // shn-锁定位置方向
+      if (Settings::Instance().m_datatest)
+      {
+        pose.qRotation = HmdQuaternion_Init(  0.995946,
+                                              0.072000,
+                                             -0.051335,
+                                             -0.016486);
+        pose.vecPosition[0] = -0.013583;
+        pose.vecPosition[1] = 1.654694;
+        pose.vecPosition[2] = 0.075420;
+      }
+      else
+      {
         pose.qRotation = HmdQuaternion_Init(info.HeadPose_Pose_Orientation.w,
                                             info.HeadPose_Pose_Orientation.x,
                                             info.HeadPose_Pose_Orientation.y,
@@ -331,7 +342,7 @@ vr::DriverPose_t OvrHmd::GetPose() {
         pose.vecPosition[0] = info.HeadPose_Pose_Position.x;
         pose.vecPosition[1] = info.HeadPose_Pose_Position.y;
         pose.vecPosition[2] = info.HeadPose_Pose_Position.z;
-
+      }
         // set prox sensor
         vr::VRDriverInput()->UpdateBooleanComponent(m_proximity, info.mounted == 1, 0.0);
         Debug(" Send to steam VR::GetPose: Rotation=(%f, %f, %f, %f) Position=(%f, %f, %f)\n",
@@ -422,18 +433,45 @@ void OvrHmd::StartStreaming() {
 void OvrHmd::SetViewsConfig(ViewsConfigData config) {
     this->views_config = config;
 
-    auto left_transform = MATRIX_IDENTITY;
-    //shn
-    left_transform.m[0][3] = -config.ipd_m / 2.0;
+    auto left_transform  = MATRIX_IDENTITY;
     auto right_transform = MATRIX_IDENTITY;
+//shn-ipd 
+    Info(" client-original ipd= %f\n", config.ipd_m);
+    if (Settings::Instance().m_datatest)
+    {
+       config.ipd_m = Settings::Instance().shn_ipd;
+       Info("test ipd = %f\n",config.ipd_m);
+    }
+    left_transform.m[0][3] = -config.ipd_m / 2.0;
     right_transform.m[0][3] = config.ipd_m / 2.0;
-    Info("interpupillary distance(ipd)= %f", config.ipd_m);
+    
     vr::VRServerDriverHost()->SetDisplayEyeToHead(object_id, left_transform, right_transform);
-//shn
-    auto left_proj  = fov_to_projection(config.fov[0]);
-    auto right_proj = fov_to_projection(config.fov[1]);
-    Info("Left fov =  (%f,%f,%f,%f)", config.fov[0].left,config.fov[0].right,config.fov[0].top,config.fov[0].bottom);
-    Info("Right fov = (%f,%f,%f,%f)", config.fov[1].left,config.fov[1].right,config.fov[1].top,config.fov[1].bottom);
+//shn-fov  
+    Info("client-original-Left  fov =  (%f,%f,%f,%f)\n", config.fov[0].left,config.fov[0].right,config.fov[0].top,config.fov[0].bottom);
+    Info("client-original-Right fov = (%f,%f,%f,%f)\n", config.fov[1].left,config.fov[1].right,config.fov[1].top,config.fov[1].bottom);
+    /*if (Settings::Instance().m_datatest)
+    {
+    
+     config.fov[0] = Settings::Instance().shn_fov[0];
+     config.fov[1] = Settings::Instance().shn_fov[1];
+     auto left_proj  = fov_to_projection(config.fov[0]);
+     auto right_proj = fov_to_projection(config.fov[1]);
+    }
+    else
+    {
+     auto left_proj  = fov_to_projection(config.fov[0]);
+     auto right_proj = fov_to_projection(config.fov[1]);
+    }*/  
+    if(Settings::Instance().m_datatest)
+    {
+     config.fov[0] = Settings::Instance().shn_fov[0];
+     config.fov[1] = Settings::Instance().shn_fov[1];
+     Info("test leftfov:(%f,%f,%f,%f)\n", config.fov[0].left,config.fov[0].right,config.fov[0].top,config.fov[0].bottom);
+    }
+     auto left_proj  = fov_to_projection(config.fov[0]);
+     auto right_proj = fov_to_projection(config.fov[1]);
+      
+
     vr::VRServerDriverHost()->SetDisplayProjectionRaw(object_id, left_proj, right_proj);
 
     // todo: check if this is still needed
